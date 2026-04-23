@@ -1,0 +1,108 @@
+from http import HTTPStatus
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.validators import check_name_duplicate
+from app.core.db import get_async_session
+from app.core.user import current_user
+from app.crud.exercise import exercise_crud
+from app.models import User
+from app.schemas.exercise import ExerciseCreate, ExerciseDB, ExerciseUpdate
+
+router = APIRouter()
+
+SessionDep = Annotated[AsyncSession, Depends(get_async_session)]
+
+
+@router.get(
+    "/",
+    response_model=list[ExerciseDB],
+    response_model_exclude_none=True,
+    summary="Показать список всех упражнений",
+)
+async def get_exercises(
+    session: SessionDep,
+    user: User = Depends(current_user),
+):
+    """Показать список всех упражнений."""
+    return await exercise_crud.get_multi_by_user(session, user.id)
+
+
+@router.get(
+    "/{exercise_id}",
+    response_model=ExerciseDB,
+    response_model_exclude_none=True,
+    summary="Показать упражнение по id",
+)
+async def get_exercise_by_id(
+    exercise_id: int,
+    session: SessionDep,
+    user: User = Depends(current_user),
+):
+    """Показать упражнение по id."""
+    exercise = await exercise_crud.get_exercise_by_id(exercise_id, session, user)
+    if not exercise:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="Упражнение не найдено"
+        )
+    return exercise
+
+
+@router.delete(
+    "/{exercise_id}",
+    summary="Удалить упражнение по id",
+    status_code=HTTPStatus.NO_CONTENT,
+)
+async def delete_exercise_by_id(
+    exercise_id: int,
+    session: SessionDep,
+    user: User = Depends(current_user),
+):
+    """Удалить упражнение по id."""
+    exercise = await exercise_crud.get_exercise_by_id(exercise_id, session, user)
+    if not exercise:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="Упражнение не найдено"
+        )
+    return await exercise_crud.remove(exercise, session)
+
+
+@router.post(
+    "/",
+    response_model=ExerciseDB,
+    response_model_exclude_none=True,
+    summary="Создать упражнение",
+    status_code=HTTPStatus.CREATED,
+)
+async def create_exercise(
+    exercise: ExerciseCreate,
+    session: SessionDep,
+    user: User = Depends(current_user),
+):
+    """Создать упражнение."""
+    await check_name_duplicate(exercise.name, session, user)
+    return await exercise_crud.create(exercise, session, user)
+
+
+@router.patch(
+    "/{exercise_id}",
+    response_model=ExerciseDB,
+    response_model_exclude_none=True,
+    summary="Обновить упражнение по id",
+)
+async def update_exercise_by_id(
+    exercise_id: int,
+    exercise: ExerciseUpdate,
+    session: SessionDep,
+    user: User = Depends(current_user),
+):
+    """Обновить упражнение по id."""
+    db_exercise = await exercise_crud.get_exercise_by_id(exercise_id, session, user)
+    if not db_exercise:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="Упражнение не найдено"
+        )
+    await check_name_duplicate(exercise.name, session, user)
+    return await exercise_crud.update(db_exercise, exercise, session)
