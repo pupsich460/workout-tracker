@@ -31,7 +31,7 @@ REST API для трекинга тренировок с AI-генерацией
 
 ```bash
 # Клонировать репозиторий
-git clone https://github.com/твой_юзернейм/workout-tracker.git
+git clone https://github.com/pupsich460/workout-tracker.git
 cd workout-tracker
 
 # Создать виртуальное окружение
