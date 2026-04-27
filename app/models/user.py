@@ -7,3 +7,6 @@ from app.core.db import Base
 
 class User(SQLAlchemyBaseUserTable[int], Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(
+        Integer, unique=True, index=True, nullable=True
+    )

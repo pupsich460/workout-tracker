@@ -1,5 +1,7 @@
-from pydantic import BaseModel, ConfigDict, Field
 from enum import Enum
+
+from pydantic import BaseModel, ConfigDict, Field
+
 from app.schemas.workout_exercise import WorkoutExerciseDB
 
 
@@ -25,6 +27,7 @@ class WorkoutUpdate(BaseModel):
     description: str | None = Field(None, max_length=255)
 
     model_config = ConfigDict(extra="forbid")
+
 
 class WorkoutGenerateRequest(BaseModel):
     goal: str

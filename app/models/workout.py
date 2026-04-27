@@ -12,5 +12,8 @@ class Workout(BaseModel):
     description: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     workout_exercises = relationship(
-        "WorkoutExercise", back_populates="workout", lazy="selectin"
+        "WorkoutExercise",
+        back_populates="workout",
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )

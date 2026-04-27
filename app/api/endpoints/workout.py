@@ -7,16 +7,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.validators import validate_workout_owner
 from app.core.db import get_async_session
 from app.core.user import current_user
+from app.crud.exercise import exercise_crud
 from app.crud.workout import workout_crud
 from app.crud.workout_exercise import workout_exercise_crud
 from app.models import User
-from app.schemas.workout import WorkoutCreate, WorkoutDB, WorkoutUpdate
+from app.schemas.exercise import ExerciseCreate
+from app.schemas.workout import (WorkoutCreate, WorkoutDB,
+                                 WorkoutGenerateRequest, WorkoutUpdate)
 from app.schemas.workout_exercise import (WorkoutExerciseCreate,
                                           WorkoutExerciseDB)
 from app.services.ai_workout import generate_workout
-from app.schemas.workout import WorkoutGenerateRequest
-from app.crud.exercise import exercise_crud
-from app.schemas.exercise import ExerciseCreate
 
 router = APIRouter()
 
@@ -161,8 +161,9 @@ async def delete_exercise_from_workout(
         )
     await workout_exercise_crud.remove(workout_exercise, session)
 
+
 @router.post(
-    '/generate',
+    "/generate",
     response_model=WorkoutDB,
     response_model_exclude_none=True,
     summary="Сгенерировать тренировку на основе цели, текущего веса, количества тренировок в неделю и уровня фитнеса",

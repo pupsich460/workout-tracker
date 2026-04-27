@@ -1,10 +1,13 @@
+import json
 
 import httpx
-import json
 
 from app.core.config import settings
 
-async def generate_workout(goal: str, current_weight: int, days_per_week: int, level: str) -> dict:
+
+async def generate_workout(
+    goal: str, current_weight: int, days_per_week: int, level: str
+) -> dict:
     prompt = f"""Ты персональный тренер. Составь план тренировки.
 
     Данные пользователя:
