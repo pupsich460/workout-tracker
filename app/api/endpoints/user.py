@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.validators import check_telegram_id_duplicate
 from app.core.db import get_async_session
 from app.core.user import auth_backend, current_user, fastapi_users
 from app.models.user import User
@@ -38,6 +39,7 @@ async def link_telegram(
     user: User = Depends(current_user),
 ):
     """Привязать Telegram к аккаунту."""
+    await check_telegram_id_duplicate(telegram_id, session)
     user.telegram_id = telegram_id
     session.add(user)
     await session.commit()

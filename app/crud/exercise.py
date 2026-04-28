@@ -31,28 +31,5 @@ class CRUDExercise(CRUDBase):
         )
         return db_project_id.scalars().first()
 
-    async def get_exercises_by_user(
-        self,
-        session,
-        user,
-    ) -> list[Exercise]:
-        result = await session.execute(
-            select(self.model).where(self.model.user_id == user.id)
-        )
-        return result.scalars().all()
-
-    async def get_exercise_by_id(
-        self,
-        exercise_id: int,
-        session,
-        user,
-    ) -> Exercise | None:
-        result = await session.execute(
-            select(self.model).where(
-                self.model.id == exercise_id, self.model.user_id == user.id
-            )
-        )
-        return result.scalars().first()
-
 
 exercise_crud = CRUDExercise(Exercise)

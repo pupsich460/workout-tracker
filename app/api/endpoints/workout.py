@@ -4,19 +4,18 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.validators import validate_workout_owner
+from app.api.validators import (validate_workout_exercise,
+                                validate_workout_owner)
 from app.core.db import get_async_session
 from app.core.user import current_user
-from app.crud.exercise import exercise_crud
 from app.crud.workout import workout_crud
 from app.crud.workout_exercise import workout_exercise_crud
 from app.models import User
-from app.schemas.exercise import ExerciseCreate
 from app.schemas.workout import (WorkoutCreate, WorkoutDB,
                                  WorkoutGenerateRequest, WorkoutUpdate)
 from app.schemas.workout_exercise import (WorkoutExerciseCreate,
                                           WorkoutExerciseDB)
-from app.services.ai_workout import generate_workout
+from app.services.ai_workout import create_workout_from_ai, generate_workout
 
 router = APIRouter()
 
@@ -36,9 +35,14 @@ async def get_workouts(
     offset: int = 0,
 ):
     """Показать список всех тренировок."""
-    return await workout_crud.get_multi_by_user(
+    workouts = await workout_crud.get_multi_by_user(
         session, user.id, limit=limit, offset=offset
     )
+    if not workouts:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="Тренировки не найдены"
+        )
+    return workouts
 
 
 @router.get(
@@ -151,14 +155,7 @@ async def delete_exercise_from_workout(
 ):
     """Удалить упражнение из тренировки по id тренировки и id упражнения."""
     await validate_workout_owner(workout_id, user, session)
-    workout_exercise = await workout_exercise_crud.get_by_workout_and_exercise(
-        workout_id, exercise_id, session
-    )
-    if not workout_exercise:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail="Упражнение в тренировке не найдено",
-        )
+    workout_exercise = await validate_workout_exercise(workout_id, exercise_id, session)
     await workout_exercise_crud.remove(workout_exercise, session)
 
 
@@ -177,23 +174,4 @@ async def generate_workout_endpoint(
     workout_data = await generate_workout(
         obj_in.goal, obj_in.current_weight, obj_in.days_per_week, obj_in.level
     )
-    workout_create = WorkoutCreate(name=workout_data["name"])
-    workout = await workout_crud.create(workout_create, session, user)
-
-    for exercise in workout_data["exercises"]:
-        exercise_obj = await exercise_crud.create(
-            ExerciseCreate(name=exercise["name"]),
-            session,
-            user,
-        )
-        await workout_exercise_crud.create(
-            WorkoutExerciseCreate(
-                workout_id=workout.id,
-                exercise_id=exercise_obj.id,
-                sets=exercise["sets"],
-                reps=exercise["reps"],
-            ),
-            session,
-        )
-
-    return workout
+    return await create_workout_from_ai(workout_data, session, user)

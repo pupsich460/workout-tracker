@@ -3,6 +3,13 @@ import json
 import httpx
 
 from app.core.config import settings
+from app.crud.exercise import exercise_crud
+from app.crud.workout import workout_crud
+from app.crud.workout_exercise import workout_exercise_crud
+from app.models.workout import Workout
+from app.schemas.exercise import ExerciseCreate
+from app.schemas.workout import WorkoutCreate
+from app.schemas.workout_exercise import WorkoutExerciseCreate
 
 
 async def generate_workout(
@@ -34,12 +41,36 @@ async def generate_workout(
         )
 
     data = response.json()
-    print(data)
     text = data["choices"][0]["message"]["content"]
     result = json.loads(text)
 
-    # если вернула список — берём первый элемент
     if isinstance(result, list):
         result = result[0]
 
     return result
+
+
+async def create_workout_from_ai(
+    workout_data: dict,
+    session,
+    user,
+) -> Workout:
+    workout_create = WorkoutCreate(name=workout_data["name"])
+    workout = await workout_crud.create(workout_create, session, user)
+
+    for exercise in workout_data["exercises"]:
+        exercise_obj = await exercise_crud.create(
+            ExerciseCreate(name=exercise["name"]),
+            session,
+            user,
+        )
+        await workout_exercise_crud.create(
+            WorkoutExerciseCreate(
+                workout_id=workout.id,
+                exercise_id=exercise_obj.id,
+                sets=exercise["sets"],
+                reps=exercise["reps"],
+            ),
+            session,
+        )
+    return workout

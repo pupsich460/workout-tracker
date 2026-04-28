@@ -5,7 +5,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class WorkoutLogBase(BaseModel):
     workout_id: int = Field(..., gt=0)
-    status: bool = Field(...)
 
     model_config = ConfigDict(extra="forbid")
 
@@ -24,5 +23,6 @@ class WorkoutLogDB(WorkoutLogBase):
     id: int
     user_id: int
     date: datetime
+    status: bool = Field(...)
 
     model_config = ConfigDict(from_attributes=True)

@@ -1,10 +1,10 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.validators import check_name_duplicate
+from app.api.validators import check_name_duplicate, validate_exercise_owner
 from app.core.db import get_async_session
 from app.core.user import current_user
 from app.crud.exercise import exercise_crud
@@ -27,7 +27,8 @@ async def get_exercises(
     user: User = Depends(current_user),
 ):
     """Показать список всех упражнений."""
-    return await exercise_crud.get_multi_by_user(session, user.id)
+    exercises = await exercise_crud.get_multi_by_user(session, user.id)
+    return exercises
 
 
 @router.get(
@@ -42,11 +43,7 @@ async def get_exercise_by_id(
     user: User = Depends(current_user),
 ):
     """Показать упражнение по id."""
-    exercise = await exercise_crud.get_exercise_by_id(exercise_id, session, user)
-    if not exercise:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="Упражнение не найдено"
-        )
+    exercise = await validate_exercise_owner(exercise_id, user, session)
     return exercise
 
 
@@ -61,12 +58,8 @@ async def delete_exercise_by_id(
     user: User = Depends(current_user),
 ):
     """Удалить упражнение по id."""
-    exercise = await exercise_crud.get_exercise_by_id(exercise_id, session, user)
-    if not exercise:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="Упражнение не найдено"
-        )
-    return await exercise_crud.remove(exercise, session)
+    exercise = await validate_exercise_owner(exercise_id, user, session)
+    await exercise_crud.remove(exercise, session)
 
 
 @router.post(
@@ -99,10 +92,7 @@ async def update_exercise_by_id(
     user: User = Depends(current_user),
 ):
     """Обновить упражнение по id."""
-    db_exercise = await exercise_crud.get_exercise_by_id(exercise_id, session, user)
-    if not db_exercise:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="Упражнение не найдено"
-        )
-    await check_name_duplicate(exercise.name, session, user)
+    db_exercise = await validate_exercise_owner(exercise_id, user, session)
+    if exercise.name is not None:
+        await check_name_duplicate(exercise.name, session, user)
     return await exercise_crud.update(db_exercise, exercise, session)
