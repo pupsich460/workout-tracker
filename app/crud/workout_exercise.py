@@ -19,5 +19,14 @@ class CRUDWorkoutExercise(CRUDBase):
         )
         return result.scalars().first()
 
+    async def get_by_fields(
+        self,
+        session,
+        **filters,
+    ):
+        query = select(self.model).filter_by(**filters)
+        result = await session.execute(query)
+        return result.scalars().first()
+
 
 workout_exercise_crud = CRUDWorkoutExercise(WorkoutExercise)

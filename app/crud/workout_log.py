@@ -18,5 +18,14 @@ class CRUDWorkoutLog(CRUDBase):
         await session.refresh(db_obj)
         return db_obj
 
+    async def get_by_fields(
+        self,
+        session,
+        **filters,
+    ):
+        query = select(self.model).filter_by(**filters)
+        result = await session.execute(query)
+        return result.scalars().first()
+
 
 workout_log_crud = CRUDWorkoutLog(WorkoutLog)

@@ -4,7 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.validators import (validate_workout_exercise,
+from app.api.validators import (check_exercise_duplicate_in_workout,
+                                validate_exercise_owner,
+                                validate_workout_exercise,
                                 validate_workout_owner)
 from app.core.db import get_async_session
 from app.core.user import current_user
@@ -38,10 +40,7 @@ async def get_workouts(
     workouts = await workout_crud.get_multi_by_user(
         session, user.id, limit=limit, offset=offset
     )
-    if not workouts:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail="Тренировки не найдены"
-        )
+
     return workouts
 
 
@@ -87,6 +86,7 @@ async def create_workout_endpoint(
     session: SessionDep,
     user: User = Depends(current_user),
 ):
+    """Создать тренировку."""
     return await workout_crud.create(obj_in, session, user)
 
 
@@ -105,6 +105,12 @@ async def add_exercise_to_workout(
 ):
     """Добавить упражнение в тренировку по id тренировки."""
     await validate_workout_owner(workout_id, user, session)
+
+    await validate_exercise_owner(obj.exercise_id, user, session)
+
+    await check_exercise_duplicate_in_workout(
+        workout_id=workout_id, exercise_id=obj.exercise_id, session=session
+    )
 
     obj_in = obj.model_copy(update={"workout_id": workout_id})
     return await workout_exercise_crud.create(obj_in, session)
@@ -139,6 +145,7 @@ async def update_workout_by_id(
 ):
     """Обновить тренировку по id."""
     workout = await validate_workout_owner(workout_id, user, session)
+
     return await workout_crud.update(workout, obj_in, session)
 
 
@@ -160,7 +167,7 @@ async def delete_exercise_from_workout(
 
 
 @router.post(
-    "/generate",
+    "/ai/generate",
     response_model=WorkoutDB,
     response_model_exclude_none=True,
     summary="Сгенерировать тренировку на основе цели, текущего веса, количества тренировок в неделю и уровня фитнеса",

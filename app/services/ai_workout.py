@@ -1,6 +1,8 @@
 import json
+from http import HTTPStatus
 
 import httpx
+from fastapi import HTTPException
 
 from app.core.config import settings
 from app.crud.exercise import exercise_crud
@@ -28,21 +30,28 @@ async def generate_workout(
 
     Никакого текста до или после JSON. Только JSON объект."""
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {settings.groq_api_key}",
-            },
-            json={
-                "model": "llama-3.3-70b-versatile",
-                "messages": [{"role": "user", "content": prompt}],
-            },
-        )
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.groq_api_key}",
+                },
+                json={
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+            )
+            response.raise_for_status()
 
-    data = response.json()
-    text = data["choices"][0]["message"]["content"]
-    result = json.loads(text)
+        data = response.json()
+        text = data["choices"][0]["message"]["content"]
+        result = json.loads(text)
+
+    except httpx.HTTPStatusError:
+        raise HTTPException(HTTPStatus.BAD_GATEWAY, "Ошибка при запросе к AI сервису")
+    except (json.JSONDecodeError, KeyError):
+        raise HTTPException(HTTPStatus.BAD_GATEWAY, "Некорректный ответ от AI сервиса")
 
     if isinstance(result, list):
         result = result[0]
@@ -55,22 +64,22 @@ async def create_workout_from_ai(
     session,
     user,
 ) -> Workout:
-    workout_create = WorkoutCreate(name=workout_data["name"])
-    workout = await workout_crud.create(workout_create, session, user)
+    async with session.begin():
+        workout_create = WorkoutCreate(name=workout_data["name"])
+        workout = await workout_crud.create(workout_create, session, user)
 
-    for exercise in workout_data["exercises"]:
-        exercise_obj = await exercise_crud.create(
-            ExerciseCreate(name=exercise["name"]),
-            session,
-            user,
-        )
-        await workout_exercise_crud.create(
-            WorkoutExerciseCreate(
-                workout_id=workout.id,
-                exercise_id=exercise_obj.id,
-                sets=exercise["sets"],
-                reps=exercise["reps"],
-            ),
-            session,
-        )
+        for exercise in workout_data["exercises"]:
+            exercise_obj = await exercise_crud.create(
+                ExerciseCreate(name=exercise["name"]), session, user
+            )
+            await workout_exercise_crud.create(
+                WorkoutExerciseCreate(
+                    workout_id=workout.id,
+                    exercise_id=exercise_obj.id,
+                    sets=exercise["sets"],
+                    reps=exercise["reps"],
+                ),
+                session,
+            )
+
     return workout

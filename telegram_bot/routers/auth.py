@@ -34,6 +34,7 @@ async def process_email(message: Message, state: FSMContext):
 
 @router.message(AuthStates.waiting_password)
 async def process_password(message: Message, state: FSMContext):
+    await message.delete()
     data = await state.get_data()
     email = data["email"]
     password = message.text
@@ -51,7 +52,7 @@ async def process_password(message: Message, state: FSMContext):
             await client.post(
                 f"{API_URL}/users/link-telegram",
                 headers={"Authorization": f"Bearer {token}"},
-                params={"telegram_id": message.from_user.id},
+                json={"telegram_id": message.from_user.id},
             )
 
             await message.answer("✅ Успешно вошёл!")

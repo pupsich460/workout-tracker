@@ -4,7 +4,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.validators import (validate_workout_log_owner,
+from app.api.validators import (check_workout_log_duplicate,
+                                validate_workout_log_owner,
                                 validate_workout_owner)
 from app.core.db import get_async_session
 from app.core.user import current_user
@@ -64,6 +65,12 @@ async def create_workout_log(
 ):
     """Отметить тренировку как выполненную."""
     await validate_workout_owner(workout_log.workout_id, user, session)
+    await check_workout_log_duplicate(
+        workout_id=workout_log.workout_id,
+        user=user,
+        date=workout_log.date,
+        session=session,
+    )
     return await workout_log_crud.create(workout_log, session, user)
 
 

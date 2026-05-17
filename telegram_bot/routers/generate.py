@@ -52,7 +52,7 @@ async def process_level(callback: CallbackQuery, state: FSMContext):
 
     async with httpx.AsyncClient(timeout=30) as client:
         response = await client.post(
-            f"{API_URL}/workouts/generate",
+            f"{API_URL}/workouts/ai/generate",
             headers={"Authorization": f"Bearer {token}"},
             json={
                 "goal": data["goal"],

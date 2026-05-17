@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column
@@ -12,6 +12,6 @@ class WorkoutLog(BaseModel):
         Integer, ForeignKey("workout.id"), nullable=False
     )
     date: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.now
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
     )
-    status: Mapped[bool] = mapped_column(nullable=False)
+    status: Mapped[bool] = mapped_column(nullable=False, default=False)

@@ -7,7 +7,7 @@ from app.api.validators import check_telegram_id_duplicate
 from app.core.db import get_async_session
 from app.core.user import auth_backend, current_user, fastapi_users
 from app.models.user import User
-from app.schemas.user import UserCreate, UserRead, UserUpdate
+from app.schemas.user import UserCreate, UserRead, UserUpdate, TelegramLinkRequest
 
 SessionDep = Annotated[AsyncSession, Depends(get_async_session)]
 
@@ -34,13 +34,13 @@ router.include_router(
 
 @router.post("/link-telegram")
 async def link_telegram(
-    telegram_id: int,
+    data: TelegramLinkRequest,
     session: SessionDep,
     user: User = Depends(current_user),
 ):
     """Привязать Telegram к аккаунту."""
-    await check_telegram_id_duplicate(telegram_id, session)
-    user.telegram_id = telegram_id
+    await check_telegram_id_duplicate(data.telegram_id, session)
+    user.telegram_id = data.telegram_id
     session.add(user)
     await session.commit()
     return {"detail": "Telegram привязан"}

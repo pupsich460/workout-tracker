@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from http import HTTPStatus
 
 from fastapi import HTTPException
@@ -72,6 +73,35 @@ async def validate_workout_exercise(
     if not workout_exercise:
         raise HTTPException(HTTPStatus.NOT_FOUND, "Упражнение в тренировке не найдено")
     return workout_exercise
+
+
+async def check_workout_log_duplicate(
+    workout_id: int, session: AsyncSession, user: User, date: datetime.date
+) -> None:
+    existing = await workout_log_crud.get_by_fields(
+        session, workout_id=workout_id, user_id=user.id, date=date
+    )
+
+    if existing:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail="Лог тренировки с таким workout_id уже существует!",
+        )
+
+
+async def check_exercise_duplicate_in_workout(
+    workout_id: int,
+    exercise_id: int,
+    session: AsyncSession,
+) -> None:
+    existing = await workout_exercise_crud.get_by_fields(
+        session, workout_id=workout_id, exercise_id=exercise_id
+    )
+    if existing:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail="Упражнение уже добавлено в тренировку!",
+        )
 
 
 async def check_telegram_id_duplicate(

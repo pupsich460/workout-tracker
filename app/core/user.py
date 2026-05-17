@@ -40,8 +40,8 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         password: str,
         user: Union[UserCreate, User],
     ) -> None:
-        if len(password) < 3:
-            error = "Пароль должен содержать не менее 3 символов"
+        if len(password) < 8:
+            error = "Пароль должен содержать не менее 8 символов"
             raise InvalidPasswordException(reason=error)
         if user.email in password:
             error = "Пароль не может содержать ваш email"
