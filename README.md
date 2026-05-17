@@ -133,7 +133,7 @@ API_URL=http://127.0.0.1:8000  # локально
 | POST | `/exercises/` | Создать упражнение |
 | GET | `/workouts/` | Список тренировок |
 | POST | `/workouts/` | Создать тренировку |
-| POST | `/workouts/generate` | **AI-генерация тренировки** |
+| POST | `/workouts/ai/generate` | **AI-генерация тренировки** |
 | POST | `/workouts/{id}/exercises` | Добавить упражнение в тренировку |
 | DELETE | `/workouts/{id}/exercises/{exercise_id}` | Удалить упражнение из тренировки |
 | DELETE | `/workouts/{id}` | Удалить тренировку |

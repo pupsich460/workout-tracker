@@ -76,6 +76,24 @@ async def get_workout_exercises(
 
 
 @router.post(
+    "/ai/generate",
+    response_model=WorkoutDB,
+    response_model_exclude_none=True,
+    summary="Сгенерировать тренировку на основе цели, текущего веса, количества тренировок в неделю и уровня фитнеса",
+)
+async def generate_workout_endpoint(
+    obj_in: WorkoutGenerateRequest,
+    session: SessionDep,
+    user: User = Depends(current_user),
+):
+    """Сгенерировать тренировку на основе цели, текущего веса, количества тренировок в неделю и уровня фитнеса."""
+    workout_data = await generate_workout(
+        obj_in.goal, obj_in.current_weight, obj_in.days_per_week, obj_in.level
+    )
+    return await create_workout_from_ai(workout_data, session, user)
+
+
+@router.post(
     "/",
     response_model=WorkoutDB,
     response_model_exclude_none=True,
@@ -165,20 +183,3 @@ async def delete_exercise_from_workout(
     workout_exercise = await validate_workout_exercise(workout_id, exercise_id, session)
     await workout_exercise_crud.remove(workout_exercise, session)
 
-
-@router.post(
-    "/ai/generate",
-    response_model=WorkoutDB,
-    response_model_exclude_none=True,
-    summary="Сгенерировать тренировку на основе цели, текущего веса, количества тренировок в неделю и уровня фитнеса",
-)
-async def generate_workout_endpoint(
-    obj_in: WorkoutGenerateRequest,
-    session: SessionDep,
-    user: User = Depends(current_user),
-):
-    """Сгенерировать тренировку на основе цели, текущего веса, количества тренировок в неделю и уровня фитнеса."""
-    workout_data = await generate_workout(
-        obj_in.goal, obj_in.current_weight, obj_in.days_per_week, obj_in.level
-    )
-    return await create_workout_from_ai(workout_data, session, user)
