@@ -64,22 +64,31 @@ async def create_workout_from_ai(
     session,
     user,
 ) -> Workout:
-    async with session.begin():
-        workout_create = WorkoutCreate(name=workout_data["name"])
-        workout = await workout_crud.create(workout_create, session, user)
 
-        for exercise in workout_data["exercises"]:
-            exercise_obj = await exercise_crud.create(
-                ExerciseCreate(name=exercise["name"]), session, user
-            )
-            await workout_exercise_crud.create(
-                WorkoutExerciseCreate(
-                    workout_id=workout.id,
-                    exercise_id=exercise_obj.id,
-                    sets=exercise["sets"],
-                    reps=exercise["reps"],
-                ),
-                session,
-            )
+    workout_create = WorkoutCreate(name=workout_data["name"])
+
+    workout = await workout_crud.create(
+        workout_create,
+        session,
+        user,
+    )
+
+    for exercise in workout_data["exercises"]:
+
+        exercise_obj = await exercise_crud.create(
+            ExerciseCreate(name=exercise["name"]),
+            session,
+            user,
+        )
+
+        await workout_exercise_crud.create(
+            WorkoutExerciseCreate(
+                workout_id=workout.id,
+                exercise_id=exercise_obj.id,
+                sets=exercise["sets"],
+                reps=exercise["reps"],
+            ),
+            session,
+        )
 
     return workout

@@ -9,10 +9,10 @@ class WorkoutExercise(BaseModel):
         UniqueConstraint("workout_id", "exercise_id", name="uix_workout_exercise"),
     )
     workout_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("workout.id"), nullable=False
+        Integer, ForeignKey("workout.id"), nullable=False, index=True
     )
     exercise_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("exercise.id"), nullable=False
+        Integer, ForeignKey("exercise.id"), nullable=False, index=True
     )
     sets: Mapped[int] = mapped_column(Integer, nullable=False)
     reps: Mapped[int] = mapped_column(Integer, nullable=False)
