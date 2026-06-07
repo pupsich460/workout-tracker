@@ -6,10 +6,10 @@ name: Workout Tracker API Workflow
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 # Задачи workflow
 jobs:
