@@ -64,4 +64,4 @@ jobs:
 
       # Запускаем тесты
       - name: Run tests
-        run: pytest -q
+        run: PYTHONPATH=. pytest -q
