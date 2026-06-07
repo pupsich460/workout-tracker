@@ -1,8 +1,12 @@
 from fastapi import APIRouter
 
-from app.api.endpoints import (exercise_router, user_router,
-                               workout_log_router, workout_router,
-                               workout_schedule_router)
+from app.api.endpoints import (
+    exercise_router,
+    user_router,
+    workout_log_router,
+    workout_router,
+    workout_schedule_router,
+)
 
 main_router = APIRouter()
 

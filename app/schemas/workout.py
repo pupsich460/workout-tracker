@@ -1,7 +1,6 @@
 from enum import Enum
 
-from pydantic import (BaseModel, ConfigDict, Field, field_validator,
-                      model_validator)
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.schemas.workout_exercise import WorkoutExerciseDB
 
