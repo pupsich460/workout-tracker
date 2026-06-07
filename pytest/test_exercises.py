@@ -101,7 +101,7 @@ class TestExercises:
     async def test_update_exercise_not_found(self, client, auth_headers):
         """PATCH несуществующего упражнения возвращает 404."""
         response = await client.patch(
-            "/exercises/999", json={"name": "X"}, headers=auth_headers
+            "/exercises/999", json={"name": "XX"}, headers=auth_headers
         )
         assert response.status_code == 404
 

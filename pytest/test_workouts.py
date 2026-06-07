@@ -75,7 +75,7 @@ class TestWorkouts:
     async def test_update_workout_not_found(self, client, auth_headers):
         """PATCH несуществующей тренировки возвращает 404."""
         response = await client.patch(
-            "/workouts/999", json={"name": "X"}, headers=auth_headers
+            "/workouts/999", json={"name": "XX"}, headers=auth_headers
         )
         assert response.status_code == 404
 
