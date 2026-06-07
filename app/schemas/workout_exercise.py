@@ -34,7 +34,4 @@ class WorkoutExerciseDB(WorkoutExerciseBase):
     id: int
     exercise: ExerciseDB
 
-    model_config = ConfigDict(
-        from_attributes=True,
-        extra="forbid"
-    )
+    model_config = ConfigDict(from_attributes=True, extra="forbid")

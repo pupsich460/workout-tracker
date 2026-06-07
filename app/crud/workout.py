@@ -9,11 +9,14 @@ class CRUDWorkout(CRUDBase):
         session,
         user,
     ):
-        obj_in_data = obj_in.model_dump()
+        obj_in_data = obj_in.model_dump(exclude={"remind_in_minutes"})
+
         db_obj = self.model(**obj_in_data, user_id=user.id)
+
         session.add(db_obj)
         await session.commit()
         await session.refresh(db_obj)
+
         return db_obj
 
 

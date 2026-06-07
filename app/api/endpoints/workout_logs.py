@@ -1,13 +1,11 @@
 from http import HTTPStatus
-from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.validators import (check_workout_log_duplicate,
                                 validate_workout_log_owner,
                                 validate_workout_owner)
-from app.core.db import get_async_session
+from app.core.dependencies import RedisDep, SessionDep
 from app.core.user import current_user
 from app.crud.workout_log import workout_log_crud
 from app.models import User
@@ -15,8 +13,6 @@ from app.schemas.workout_log import (WorkoutLogCreate, WorkoutLogDB,
                                      WorkoutLogUpdate)
 
 router = APIRouter()
-
-SessionDep = Annotated[AsyncSession, Depends(get_async_session)]
 
 
 @router.get(

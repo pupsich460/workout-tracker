@@ -1,19 +1,15 @@
 from http import HTTPStatus
-from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.validators import check_name_duplicate, validate_exercise_owner
-from app.core.db import get_async_session
+from app.core.dependencies import RedisDep, SessionDep
 from app.core.user import current_user
 from app.crud.exercise import exercise_crud
 from app.models import User
 from app.schemas.exercise import ExerciseCreate, ExerciseDB, ExerciseUpdate
 
 router = APIRouter()
-
-SessionDep = Annotated[AsyncSession, Depends(get_async_session)]
 
 
 @router.get(

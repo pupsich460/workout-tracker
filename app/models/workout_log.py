@@ -7,7 +7,9 @@ from app.models.base import BaseModel
 
 
 class WorkoutLog(BaseModel):
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("user.id"), nullable=False, index=True
+    )
     workout_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("workout.id"), nullable=False
     )

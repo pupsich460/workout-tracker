@@ -1,17 +1,16 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.validators import check_telegram_id_duplicate
-from app.core.db import get_async_session
+from app.core.dependencies import RedisDep, SessionDep
+from app.core.logger import setup_logger
 from app.core.user import auth_backend, current_user, fastapi_users
 from app.models.user import User
-from app.schemas.user import UserCreate, UserRead, UserUpdate, TelegramLinkRequest
-
-SessionDep = Annotated[AsyncSession, Depends(get_async_session)]
+from app.schemas.user import (TelegramLinkRequest, UserCreate, UserRead,
+                              UserUpdate)
 
 router = APIRouter()
+
+logger = setup_logger(__name__)
 
 router.include_router(
     fastapi_users.get_auth_router(auth_backend),
@@ -43,4 +42,5 @@ async def link_telegram(
     user.telegram_id = data.telegram_id
     session.add(user)
     await session.commit()
+    logger.info(f"Пользователь {user.username} привязал Telegram ID {data.telegram_id}")
     return {"detail": "Telegram привязан"}

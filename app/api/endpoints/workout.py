@@ -1,14 +1,12 @@
 from http import HTTPStatus
-from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.validators import (check_exercise_duplicate_in_workout,
                                 validate_exercise_owner,
                                 validate_workout_exercise,
                                 validate_workout_owner)
-from app.core.db import get_async_session
+from app.core.dependencies import RedisDep, SessionDep
 from app.core.user import current_user
 from app.crud.workout import workout_crud
 from app.crud.workout_exercise import workout_exercise_crud
@@ -18,10 +16,9 @@ from app.schemas.workout import (WorkoutCreate, WorkoutDB,
 from app.schemas.workout_exercise import (WorkoutExerciseCreate,
                                           WorkoutExerciseDB)
 from app.services.ai_workout import create_workout_from_ai, generate_workout
+from app.tasks.reminders import send_workout_reminder
 
 router = APIRouter()
-
-SessionDep = Annotated[AsyncSession, Depends(get_async_session)]
 
 
 @router.get(
@@ -42,6 +39,12 @@ async def get_workouts(
     )
 
     return workouts
+
+
+@router.get("/redis-test")
+async def redis_test(redis: RedisDep):
+    await redis.set("test", "hello")
+    return {"value": await redis.get("test")}
 
 
 @router.get(
@@ -105,7 +108,21 @@ async def create_workout_endpoint(
     user: User = Depends(current_user),
 ):
     """Создать тренировку."""
-    return await workout_crud.create(obj_in, session, user)
+    workout = await workout_crud.create(obj_in, session, user)
+
+    if obj_in.remind_in_minutes is not None:
+        if not user.telegram_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Telegram не привязан. Невозможно создать напоминание.",
+            )
+
+    if obj_in.remind_in_minutes is not None:
+        send_workout_reminder.apply_async(
+            args=[user.telegram_id, f"Напоминание о тренировке: {workout.name}"],
+            countdown=obj_in.remind_in_minutes * 60,
+        )
+    return workout
 
 
 @router.post(
@@ -182,4 +199,3 @@ async def delete_exercise_from_workout(
     await validate_workout_owner(workout_id, user, session)
     workout_exercise = await validate_workout_exercise(workout_id, exercise_id, session)
     await workout_exercise_crud.remove(workout_exercise, session)
-

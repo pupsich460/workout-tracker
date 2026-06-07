@@ -1,8 +1,10 @@
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (BaseModel, ConfigDict, Field, field_validator,
+                      model_validator)
 
 from app.schemas.workout_exercise import WorkoutExerciseDB
+
 
 def clean_string(v: str, min_len: int = 1) -> str:
     v = v.strip()
@@ -42,7 +44,7 @@ class WorkoutBase(BaseModel):
 
 
 class WorkoutCreate(WorkoutBase):
-    pass
+    remind_in_minutes: int | None = Field(None, gt=0, le=10080)
 
 
 class WorkoutUpdate(BaseModel):
@@ -77,7 +79,6 @@ class WorkoutGenerateRequest(BaseModel):
     level: FitnessLevel
 
     model_config = ConfigDict(extra="forbid")
-
 
     @field_validator("goal")
     @classmethod
