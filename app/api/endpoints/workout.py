@@ -2,24 +2,19 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.validators import (
-    check_exercise_duplicate_in_workout,
-    validate_exercise_owner,
-    validate_workout_exercise,
-    validate_workout_owner,
-)
+from app.api.validators import (check_exercise_duplicate_in_workout,
+                                validate_exercise_owner,
+                                validate_workout_exercise,
+                                validate_workout_owner)
 from app.core.dependencies import RedisDep, SessionDep
 from app.core.user import current_user
 from app.crud.workout import workout_crud
 from app.crud.workout_exercise import workout_exercise_crud
 from app.models import User
-from app.schemas.workout import (
-    WorkoutCreate,
-    WorkoutDB,
-    WorkoutGenerateRequest,
-    WorkoutUpdate,
-)
-from app.schemas.workout_exercise import WorkoutExerciseCreate, WorkoutExerciseDB
+from app.schemas.workout import (WorkoutCreate, WorkoutDB,
+                                 WorkoutGenerateRequest, WorkoutUpdate)
+from app.schemas.workout_exercise import (WorkoutExerciseCreate,
+                                          WorkoutExerciseDB)
 from app.services.ai_workout import create_workout_from_ai, generate_workout
 from app.tasks.reminders import send_workout_reminder
 

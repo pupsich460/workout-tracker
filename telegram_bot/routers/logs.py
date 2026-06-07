@@ -1,11 +1,7 @@
 import httpx
 from aiogram import F, Router
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-)
+from aiogram.types import (CallbackQuery, InlineKeyboardButton,
+                           InlineKeyboardMarkup, Message)
 
 from telegram_bot.storage import API_URL, user_tokens
 

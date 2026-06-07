@@ -1,12 +1,8 @@
 import httpx
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-)
+from aiogram.types import (CallbackQuery, InlineKeyboardButton,
+                           InlineKeyboardMarkup, Message)
 
 from telegram_bot.states import AddExerciseStates, CreateWorkoutStates
 from telegram_bot.storage import API_URL, user_tokens
