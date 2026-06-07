@@ -1,0 +1,66 @@
+# Файл main.yml
+# Имя workflow
+name: Workout Tracker API Workflow
+
+# Когда запускать workflow
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Задачи workflow
+jobs:
+  tests:
+    # Имя задачи
+    name: Run tests and code checks
+
+    # На какой системе запускать
+    runs-on: ubuntu-latest
+
+    # Переменные окружения для тестов
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: tracker_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      SECRET: test-secret
+      GROQ_API_KEY: test-groq-key
+      BOT_TOKEN: test-bot-token
+      API_URL: http://127.0.0.1:8000
+      SQL_ECHO: false
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+
+    steps:
+      # Получаем код из репозитория
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      # Устанавливаем Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Устанавливаем зависимости
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      # Проверяем форматирование Black
+      - name: Check formatting with Black
+        run: black --check app telegram_bot pytest
+
+      # Проверяем сортировку импортов
+      - name: Check imports with isort
+        run: isort --check-only app telegram_bot pytest
+
+      # Запускаем тесты
+      - name: Run tests
+        run: pytest -q
