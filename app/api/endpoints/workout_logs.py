@@ -2,15 +2,16 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends
 
-from app.api.validators import (check_workout_log_duplicate,
-                                validate_workout_log_owner,
-                                validate_workout_owner)
+from app.api.validators import (
+    check_workout_log_duplicate,
+    validate_workout_log_owner,
+    validate_workout_owner,
+)
 from app.core.dependencies import RedisDep, SessionDep
 from app.core.user import current_user
 from app.crud.workout_log import workout_log_crud
 from app.models import User
-from app.schemas.workout_log import (WorkoutLogCreate, WorkoutLogDB,
-                                     WorkoutLogUpdate)
+from app.schemas.workout_log import WorkoutLogCreate, WorkoutLogDB, WorkoutLogUpdate
 
 router = APIRouter()
 

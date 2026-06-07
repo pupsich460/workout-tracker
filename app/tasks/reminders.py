@@ -9,6 +9,7 @@ from app.core.logger import setup_logger
 
 logger = setup_logger(__name__)
 
+
 async def _send_telegram_message(telegram_id: int, text: str):
     bot = Bot(token=settings.bot_token)
 

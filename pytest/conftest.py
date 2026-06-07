@@ -35,27 +35,35 @@ async def prepare_database():
 @pytest_asyncio.fixture
 async def client():
     """HTTP-клиент для запросов к приложению."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         yield ac
 
 
 @pytest_asyncio.fixture
 async def registered_user(client):
     """Зарегистрированный пользователь."""
-    await client.post("/auth/register", json={
-        "email": "test@example.com",
-        "password": "testpass",
-    })
+    await client.post(
+        "/auth/register",
+        json={
+            "email": "test@example.com",
+            "password": "testpass",
+        },
+    )
     return {"email": "test@example.com", "password": "testpass"}
 
 
 @pytest_asyncio.fixture
 async def auth_headers(client, registered_user):
     """Заголовки с JWT-токеном для авторизованных запросов."""
-    response = await client.post("/auth/jwt/login", data={
-        "username": registered_user["email"],
-        "password": registered_user["password"],
-    })
+    response = await client.post(
+        "/auth/jwt/login",
+        data={
+            "username": registered_user["email"],
+            "password": registered_user["password"],
+        },
+    )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
@@ -63,18 +71,26 @@ async def auth_headers(client, registered_user):
 @pytest_asyncio.fixture
 async def workout(client, auth_headers):
     """Созданная тренировка."""
-    response = await client.post("/workouts/", json={
-        "name": "Тестовая тренировка",
-        "description": "Описание",
-    }, headers=auth_headers)
+    response = await client.post(
+        "/workouts/",
+        json={
+            "name": "Тестовая тренировка",
+            "description": "Описание",
+        },
+        headers=auth_headers,
+    )
     return response.json()
 
 
 @pytest_asyncio.fixture
 async def exercise(client, auth_headers):
     """Созданное упражнение."""
-    response = await client.post("/exercises/", json={
-        "name": "Жим лёжа",
-        "description": "Базовое упражнение",
-    }, headers=auth_headers)
+    response = await client.post(
+        "/exercises/",
+        json={
+            "name": "Жим лёжа",
+            "description": "Базовое упражнение",
+        },
+        headers=auth_headers,
+    )
     return response.json()

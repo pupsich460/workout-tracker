@@ -5,8 +5,7 @@ from app.core.dependencies import RedisDep, SessionDep
 from app.core.logger import setup_logger
 from app.core.user import auth_backend, current_user, fastapi_users
 from app.models.user import User
-from app.schemas.user import (TelegramLinkRequest, UserCreate, UserRead,
-                              UserUpdate)
+from app.schemas.user import TelegramLinkRequest, UserCreate, UserRead, UserUpdate
 
 router = APIRouter()
 
