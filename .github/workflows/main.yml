@@ -56,7 +56,7 @@ jobs:
       - name: Run tests with coverage
         run: PYTHONPATH=. python -m pytest --cov=app --cov-report=term
 
-  build_and_push_to_dccker_hub:
+  build_and_push_to_docker_hub:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     needs: tests
