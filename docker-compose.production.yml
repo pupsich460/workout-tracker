@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    restart: always
+
+  backend:
+    image: pupsich460/workout-tracker-api:latest
+    restart: always
+    env_file: .env
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8000:8000"
+
+  celery:
+    image: pupsich460/workout-tracker-api:latest
+    restart: always
+    env_file: .env
+    depends_on:
+      - backend
+      - redis
+      - db
+    command: celery -A app.core.celery_app worker --loglevel=info
+
+  bot:
+    image: pupsich460/workout-tracker-api:latest
+    restart: always
+    env_file: .env
+    depends_on:
+      - backend
+      - redis
+      - db
+    command: python -m telegram_bot.main
+
+volumes:
+  postgres_data:
