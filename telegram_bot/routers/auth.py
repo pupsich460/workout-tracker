@@ -1,12 +1,10 @@
 import httpx
-from aiogram import F, Router
+from aiogram import Router
 from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from telegram_bot.keyboards import main_menu_keyboard
-from telegram_bot.states import AuthStates
-from telegram_bot.storage import API_URL, user_tokens
+from telegram_bot.storage import API_URL
 
 router = Router()
 
@@ -14,49 +12,46 @@ router = Router()
 @router.message(Command("start"))
 async def cmd_start(message: Message):
     await message.answer(
-        "Привет! Я бот для трекинга тренировок.",
+        "Привет! Я бот для трекинга тренировок.\n\n"
+        "Чтобы привязать аккаунт:\n"
+        "1. Войди в API.\n"
+        "2. Получи код привязки Telegram.\n"
+        "3. Отправь сюда команду:\n\n"
+        "/link CODE",
         reply_markup=main_menu_keyboard,
     )
 
 
-@router.message(F.text == "🔑 Войти")
-async def cmd_login(message: Message, state: FSMContext):
-    await message.answer("Введи email:")
-    await state.set_state(AuthStates.waiting_email)
+@router.message(Command("link"))
+async def cmd_link(message: Message):
+    args = message.text.split(maxsplit=1)
 
+    if len(args) < 2:
+        await message.answer("Отправь команду в формате:\n\n/link CODE")
+        return
 
-@router.message(AuthStates.waiting_email)
-async def process_email(message: Message, state: FSMContext):
-    await state.update_data(email=message.text)
-    await message.answer("Введи пароль:")
-    await state.set_state(AuthStates.waiting_password)
-
-
-@router.message(AuthStates.waiting_password)
-async def process_password(message: Message, state: FSMContext):
-    await message.delete()
-    data = await state.get_data()
-    email = data["email"]
-    password = message.text
+    code = args[1].strip()
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{API_URL}/auth/jwt/login",
-            data={"username": email, "password": password},
+            f"{API_URL}/link-telegram-by-code",
+            json={
+                "telegram_id": message.from_user.id,
+                "code": code,
+            },
         )
 
-        if response.status_code == 200:
-            token = response.json()["access_token"]
-            user_tokens[message.from_user.id] = token
+    if response.status_code == 200:
+        data = response.json()
+        email = data.get("email")
 
-            await client.post(
-                f"{API_URL}/users/link-telegram",
-                headers={"Authorization": f"Bearer {token}"},
-                json={"telegram_id": message.from_user.id},
-            )
-
-            await message.answer("✅ Успешно вошёл!")
+        if email:
+            await message.answer(f"✅ Telegram привязан к аккаунту {email}")
         else:
-            await message.answer("❌ Неверный email или пароль.")
-
-    await state.clear()
+            await message.answer("✅ Telegram успешно привязан к аккаунту")
+    elif response.status_code == 404:
+        await message.answer("❌ Неверный код привязки")
+    elif response.status_code == 400:
+        await message.answer("❌ Этот Telegram уже привязан к другому аккаунту")
+    else:
+        await message.answer("❌ Не удалось привязать Telegram. Попробуй позже.")

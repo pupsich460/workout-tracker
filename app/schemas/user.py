@@ -16,3 +16,8 @@ class UserUpdate(schemas.BaseUserUpdate):
 
 class TelegramLinkRequest(BaseModel):
     telegram_id: int = Field(..., gt=0)
+
+
+class TelegramLinkByCodeRequest(BaseModel):
+    telegram_id: int
+    code: str
