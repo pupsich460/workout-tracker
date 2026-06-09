@@ -9,12 +9,19 @@ load_dotenv(BASE_DIR / ".env")
 
 
 class Settings(BaseSettings):
+    # Общие настройки приложения
     app_title: str = "Workout_tracker"
+    version: str = "0.1.0"
+    description: str = "API для отслеживания тренировок и прогресса"
+
+    # Настройки базы данных
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
     DB_USER: str
     DB_PASSWORD: str
+
+    # Секретные ключи и токены
     secret: str
     groq_api_key: str
     bot_token: str
@@ -25,6 +32,7 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
+        """Сформировать URL для подключения к базе данных."""
         return (
             f"postgresql+asyncpg://"
             f"{self.DB_USER}:{self.DB_PASSWORD}"
@@ -32,7 +40,9 @@ class Settings(BaseSettings):
         )
 
     model_config = SettingsConfigDict(
-        env_file=str(BASE_DIR / ".env"), env_file_encoding="utf-8"
+        env_file=str(BASE_DIR / ".env"),
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 

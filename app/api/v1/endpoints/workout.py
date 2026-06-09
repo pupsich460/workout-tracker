@@ -46,12 +46,6 @@ async def get_workouts(
     return workouts
 
 
-@router.get("/redis-test")
-async def redis_test(redis: RedisDep):
-    await redis.set("test", "hello")
-    return {"value": await redis.get("test")}
-
-
 @router.get(
     "/{workout_id}",
     response_model=WorkoutDB,
