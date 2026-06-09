@@ -2,7 +2,10 @@ services:
   db:
     image: postgres:16
     restart: always
-    env_file: .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -20,7 +23,7 @@ services:
     ports:
       - "8000:8000"
     healthcheck:
-      test:     
+      test:
         [
           "CMD",
           "python",
@@ -30,15 +33,19 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 20s
 
   celery:
     image: pupsich460/workout-tracker-api:latest
     restart: always
     env_file: .env
     depends_on:
-      - backend
-      - redis
-      - db
+      backend:
+        condition: service_healthy
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
     command: celery -A app.core.celery_app worker --loglevel=info
 
   bot:
@@ -46,9 +53,12 @@ services:
     restart: always
     env_file: .env
     depends_on:
-      - backend
-      - redis
-      - db
+      backend:
+        condition: service_healthy
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
     command: python -m telegram_bot.main
 
 volumes:
