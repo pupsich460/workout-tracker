@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from Workout_Tracker_API.app.api.v1.endpoints import (
+from app.api.v1.endpoints import (
     exercise_router,
     user_router,
     workout_log_router,

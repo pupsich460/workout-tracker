@@ -29,11 +29,12 @@ app.add_exception_handler(Exception, global_exception_handler)
 
 app.include_router(main_router)
 
-@app.get('/', response_model=dict)
+
+@app.get("/", response_model=dict)
 async def index() -> dict:
     """Return basic app info and health status."""
     return {
-        'app': f'{settings.app_title} ({settings.version})',
-        'description': settings.description,
-        'status': 'OK',
+        "app": f"{settings.app_title} ({settings.version})",
+        "description": settings.description,
+        "status": "OK",
     }
