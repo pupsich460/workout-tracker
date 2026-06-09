@@ -80,3 +80,22 @@ jobs:
           context: .
           push: true
           tags: pupsich460/workout-tracker-api:latest
+
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: build_and_push_to_docker_hub
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ~/workout-tracker
+            docker compose -f docker-compose.production.yml pull
+            docker compose -f docker-compose.production.yml up -d
+            docker compose -f docker-compose.production.yml exec -T backend alembic upgrade head
+            docker compose -f docker-compose.production.yml ps
