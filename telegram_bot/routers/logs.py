@@ -7,16 +7,31 @@ from aiogram.types import (
     Message,
 )
 
-from telegram_bot.storage import API_URL, user_tokens
+from telegram_bot.services.auth import get_or_restore_token
+from telegram_bot.storage import API_URL
 
 router = Router()
 
 
+async def require_token(message_or_callback) -> str | None:
+    user_id = message_or_callback.from_user.id
+    token = await get_or_restore_token(user_id)
+
+    if not token:
+        target = (
+            message_or_callback.message
+            if isinstance(message_or_callback, CallbackQuery)
+            else message_or_callback
+        )
+        await target.answer("Сначала привяжи аккаунт через /link CODE")
+
+    return token
+
+
 @router.message(F.text == "📝 Отметить тренировку")
 async def cmd_log(message: Message):
-    token = user_tokens.get(message.from_user.id)
+    token = await require_token(message)
     if not token:
-        await message.answer("Сначала войди — нажми 🔑 Войти")
         return
 
     async with httpx.AsyncClient() as client:
@@ -24,6 +39,10 @@ async def cmd_log(message: Message):
             f"{API_URL}/workouts/",
             headers={"Authorization": f"Bearer {token}"},
         )
+
+    if response.status_code != 200:
+        await message.answer("❌ Не удалось получить тренировки.")
+        return
 
     workouts = response.json()
     if not workouts:
@@ -36,19 +55,23 @@ async def cmd_log(message: Message):
             for w in workouts
         ]
     )
-    await message.answer("Выбери тренировку которую выполнил:", reply_markup=kb)
+    await message.answer("Выбери тренировку, которую выполнил:", reply_markup=kb)
 
 
 @router.callback_query(F.data.startswith("log_"))
 async def process_log(callback: CallbackQuery):
+    token = await require_token(callback)
+    if not token:
+        await callback.answer()
+        return
+
     workout_id = int(callback.data.split("_")[1])
-    token = user_tokens.get(callback.from_user.id)
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{API_URL}/workout-logs/",
             headers={"Authorization": f"Bearer {token}"},
-            json={"workout_id": workout_id},
+            json={"workout_id": workout_id, "status": True},
         )
 
     if response.status_code == 201:

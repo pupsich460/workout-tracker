@@ -8,17 +8,32 @@ from aiogram.types import (
     Message,
 )
 
+from telegram_bot.services.auth import get_or_restore_token
 from telegram_bot.states import AddExerciseStates, CreateWorkoutStates
-from telegram_bot.storage import API_URL, user_tokens
+from telegram_bot.storage import API_URL
 
 router = Router()
 
 
+async def require_token(message_or_callback) -> str | None:
+    user_id = message_or_callback.from_user.id
+    token = await get_or_restore_token(user_id)
+
+    if not token:
+        target = (
+            message_or_callback.message
+            if isinstance(message_or_callback, CallbackQuery)
+            else message_or_callback
+        )
+        await target.answer("Сначала привяжи аккаунт через /link CODE")
+
+    return token
+
+
 @router.message(F.text == "💪 Мои тренировки")
 async def get_workouts(message: Message):
-    token = user_tokens.get(message.from_user.id)
+    token = await require_token(message)
     if not token:
-        await message.answer("Сначала войди — нажми 🔑 Войти")
         return
 
     async with httpx.AsyncClient() as client:
@@ -26,6 +41,10 @@ async def get_workouts(message: Message):
             f"{API_URL}/workouts/",
             headers={"Authorization": f"Bearer {token}"},
         )
+
+    if response.status_code != 200:
+        await message.answer("❌ Не удалось получить тренировки.")
+        return
 
     workouts = response.json()
     if not workouts:
@@ -50,8 +69,12 @@ async def get_workouts(message: Message):
 
 @router.callback_query(F.data.startswith("workout_"))
 async def get_workout_detail(callback: CallbackQuery):
+    token = await require_token(callback)
+    if not token:
+        await callback.answer()
+        return
+
     workout_id = callback.data.split("_")[1]
-    token = user_tokens.get(callback.from_user.id)
 
     async with httpx.AsyncClient() as client:
         response = await client.get(
@@ -59,8 +82,14 @@ async def get_workout_detail(callback: CallbackQuery):
             headers={"Authorization": f"Bearer {token}"},
         )
 
+    if response.status_code != 200:
+        await callback.message.answer("❌ Не удалось получить тренировку.")
+        await callback.answer()
+        return
+
     workout = response.json()
     text = f"*{workout['name']}*\n\n"
+
     for we in workout.get("workout_exercises", []):
         text += f"• {we['exercise']['name']} — {we['sets']}x{we['reps']}\n"
 
@@ -81,8 +110,12 @@ async def get_workout_detail(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("delete_"))
 async def delete_workout(callback: CallbackQuery):
+    token = await require_token(callback)
+    if not token:
+        await callback.answer()
+        return
+
     workout_id = callback.data.split("_")[1]
-    token = user_tokens.get(callback.from_user.id)
 
     async with httpx.AsyncClient() as client:
         response = await client.delete(
@@ -100,10 +133,10 @@ async def delete_workout(callback: CallbackQuery):
 
 @router.message(F.text == "➕ Создать тренировку")
 async def cmd_create_workout(message: Message, state: FSMContext):
-    token = user_tokens.get(message.from_user.id)
+    token = await require_token(message)
     if not token:
-        await message.answer("Сначала войди — нажми 🔑 Войти")
         return
+
     await message.answer("Введи название тренировки:")
     await state.set_state(CreateWorkoutStates.waiting_name)
 
@@ -117,9 +150,12 @@ async def process_workout_name(message: Message, state: FSMContext):
 
 @router.message(CreateWorkoutStates.waiting_description)
 async def process_workout_description(message: Message, state: FSMContext):
-    data = await state.get_data()
-    token = user_tokens.get(message.from_user.id)
+    token = await require_token(message)
+    if not token:
+        await state.clear()
+        return
 
+    data = await state.get_data()
     description = None if message.text.lower() == "пропустить" else message.text
 
     async with httpx.AsyncClient() as client:
@@ -129,7 +165,7 @@ async def process_workout_description(message: Message, state: FSMContext):
             json={"name": data["name"], "description": description},
         )
 
-    if response.status_code == 200:
+    if response.status_code in (200, 201):
         await message.answer(f"✅ Тренировка '{data['name']}' создана!")
     else:
         await message.answer("❌ Что-то пошло не так.")
@@ -139,6 +175,11 @@ async def process_workout_description(message: Message, state: FSMContext):
 
 @router.callback_query(F.data.startswith("add_exercise_"))
 async def cmd_add_exercise(callback: CallbackQuery, state: FSMContext):
+    token = await require_token(callback)
+    if not token:
+        await callback.answer()
+        return
+
     workout_id = callback.data.split("_")[2]
     await state.update_data(workout_id=workout_id)
     await callback.message.answer("Введи название упражнения:")
@@ -155,15 +196,31 @@ async def process_exercise_name(message: Message, state: FSMContext):
 
 @router.message(AddExerciseStates.waiting_sets)
 async def process_sets(message: Message, state: FSMContext):
-    await state.update_data(sets=int(message.text))
+    try:
+        sets = int(message.text)
+    except ValueError:
+        await message.answer("Введи число.")
+        return
+
+    await state.update_data(sets=sets)
     await message.answer("Введи количество повторений:")
     await state.set_state(AddExerciseStates.waiting_reps)
 
 
 @router.message(AddExerciseStates.waiting_reps)
 async def process_reps(message: Message, state: FSMContext):
+    token = await require_token(message)
+    if not token:
+        await state.clear()
+        return
+
+    try:
+        reps = int(message.text)
+    except ValueError:
+        await message.answer("Введи число.")
+        return
+
     data = await state.get_data()
-    token = user_tokens.get(message.from_user.id)
 
     async with httpx.AsyncClient() as client:
         exercise_response = await client.post(
@@ -171,17 +228,27 @@ async def process_reps(message: Message, state: FSMContext):
             headers={"Authorization": f"Bearer {token}"},
             json={"name": data["exercise_name"]},
         )
+
+        if exercise_response.status_code not in (200, 201):
+            await message.answer("❌ Не удалось создать упражнение.")
+            await state.clear()
+            return
+
         exercise = exercise_response.json()
 
-        await client.post(
+        response = await client.post(
             f"{API_URL}/workouts/{data['workout_id']}/exercises",
             headers={"Authorization": f"Bearer {token}"},
             json={
                 "exercise_id": exercise["id"],
                 "sets": data["sets"],
-                "reps": int(message.text),
+                "reps": reps,
             },
         )
 
-    await message.answer("✅ Упражнение добавлено!")
+    if response.status_code in (200, 201):
+        await message.answer("✅ Упражнение добавлено!")
+    else:
+        await message.answer("❌ Не удалось добавить упражнение.")
+
     await state.clear()

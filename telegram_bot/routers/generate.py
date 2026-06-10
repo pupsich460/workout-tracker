@@ -4,18 +4,21 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from telegram_bot.keyboards import level_keyboard
+from telegram_bot.services.auth import get_or_restore_token
 from telegram_bot.states import GenerateStates
-from telegram_bot.storage import API_URL, user_tokens
+from telegram_bot.storage import API_URL
 
 router = Router()
 
 
 @router.message(F.text == "🤖 Сгенерировать тренировку")
 async def cmd_generate(message: Message, state: FSMContext):
-    token = user_tokens.get(message.from_user.id)
+    token = await get_or_restore_token(message.from_user.id)
+
     if not token:
-        await message.answer("Сначала войди — нажми 🔑 Войти")
+        await message.answer("Сначала привяжи аккаунт через /link CODE")
         return
+
     await message.answer("Введи цель (например: похудеть, набрать массу):")
     await state.set_state(GenerateStates.waiting_goal)
 
@@ -44,7 +47,14 @@ async def process_days(message: Message, state: FSMContext):
 @router.callback_query(GenerateStates.waiting_level)
 async def process_level(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    token = user_tokens.get(callback.from_user.id)
+    token = await get_or_restore_token(callback.from_user.id)
+
+    if not token:
+        await callback.message.answer("Сначала привяжи аккаунт через /link CODE")
+        await callback.answer()
+        await state.clear()
+        return
+
     level = callback.data
 
     await callback.message.answer("⏳ Генерирую тренировку...")
@@ -62,8 +72,14 @@ async def process_level(callback: CallbackQuery, state: FSMContext):
             },
         )
 
+    if response.status_code != 200:
+        await callback.message.answer("❌ Не удалось сгенерировать тренировку.")
+        await state.clear()
+        return
+
     workout = response.json()
     text = f"✅ Тренировка создана: *{workout['name']}*\n\n"
+
     for we in workout.get("workout_exercises", []):
         text += f"• {we['exercise']['name']} — {we['sets']}x{we['reps']}\n"
 

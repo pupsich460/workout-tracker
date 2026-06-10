@@ -6,6 +6,7 @@ from app.api.v1.endpoints import (
     workout_log_router,
     workout_router,
     workout_schedule_router,
+    telegram_auth_router,
 )
 
 main_router = APIRouter()
@@ -20,4 +21,5 @@ main_router.include_router(
     prefix="/workout-schedules",
     tags=["Workout schedules"],
 )
+main_router.include_router(telegram_auth_router, prefix="/telegram", tags=["telegram"])
 main_router.include_router(user_router)

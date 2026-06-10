@@ -39,72 +39,72 @@ router.include_router(
 )
 
 
-@router.post("/link-telegram")
-async def link_telegram(
-    data: TelegramLinkRequest,
-    session: SessionDep,
-    user: User = Depends(current_user),
-):
-    """Привязать Telegram к аккаунту."""
-    await check_telegram_id_duplicate(data.telegram_id, session)
-    user.telegram_id = data.telegram_id
-    session.add(user)
-    await session.commit()
-    logger.info(f"Пользователь {user.email} привязал Telegram ID {data.telegram_id}")
+# @router.post("/link-telegram")
+# async def link_telegram(
+#     data: TelegramLinkRequest,
+#     session: SessionDep,
+#     user: User = Depends(current_user),
+# ):
+#     """Привязать Telegram к аккаунту."""
+#     await check_telegram_id_duplicate(data.telegram_id, session)
+#     user.telegram_id = data.telegram_id
+#     session.add(user)
+#     await session.commit()
+#     logger.info(f"Пользователь {user.email} привязал Telegram ID {data.telegram_id}")
 
-    return {
-        "detail": "Telegram привязан",
-        "email": user.email,
-    }
-
-
-@router.post("/telegram-link-code")
-async def generate_telegram_link_code(
-    session: SessionDep,
-    user: User = Depends(current_user),
-):
-    """Сгенерировать код для привязки Telegram."""
-    code = secrets.token_urlsafe(8)
-
-    user.telegram_link_code = code
-    session.add(user)
-    await session.commit()
-
-    logger.info(f"Пользователь {user.email} сгенерировал код для привязки Telegram")
-
-    return {"telegram_link_code": code}
+#     return {
+#         "detail": "Telegram привязан",
+#         "email": user.email,
+#     }
 
 
-@router.post("/link-telegram-by-code")
-async def link_telegram_by_code(
-    data: TelegramLinkByCodeRequest,
-    session: SessionDep,
-):
-    user = await session.scalar(
-        select(User).where(User.telegram_link_code == data.code)
-    )
+# @router.post("/telegram-link-code")
+# async def generate_telegram_link_code(
+#     session: SessionDep,
+#     user: User = Depends(current_user),
+# ):
+#     """Сгенерировать код для привязки Telegram."""
+#     code = secrets.token_urlsafe(8)
 
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Invalid link code",
-        )
+#     user.telegram_link_code = code
+#     session.add(user)
+#     await session.commit()
 
-    await check_telegram_id_duplicate(data.telegram_id, session)
+#     logger.info(f"Пользователь {user.email} сгенерировал код для привязки Telegram")
 
-    user.telegram_id = data.telegram_id
-    user.telegram_link_code = None
+#     return {"telegram_link_code": code}
 
-    session.add(user)
-    await session.commit()
 
-    strategy = get_jwt_strategy()
-    access_token = await strategy.write_token(user)
+# @router.post("/link-telegram-by-code")
+# async def link_telegram_by_code(
+#     data: TelegramLinkByCodeRequest,
+#     session: SessionDep,
+# ):
+#     user = await session.scalar(
+#         select(User).where(User.telegram_link_code == data.code)
+#     )
 
-    logger.info(f"Пользователь {user.email} привязал Telegram ID {data.telegram_id}")
+#     if user is None:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="Invalid link code",
+#         )
 
-    return {
-        "detail": "Telegram привязан",
-        "email": user.email,
-        "access_token": access_token,
-    }
+#     await check_telegram_id_duplicate(data.telegram_id, session)
+
+#     user.telegram_id = data.telegram_id
+#     user.telegram_link_code = None
+
+#     session.add(user)
+#     await session.commit()
+
+#     strategy = get_jwt_strategy()
+#     access_token = await strategy.write_token(user)
+
+#     logger.info(f"Пользователь {user.email} привязал Telegram ID {data.telegram_id}")
+
+#     return {
+#         "detail": "Telegram привязан",
+#         "email": user.email,
+#         "access_token": access_token,
+#     }

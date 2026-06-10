@@ -34,7 +34,7 @@ async def cmd_link(message: Message):
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{API_URL}/link-telegram-by-code",
+            f"{API_URL}/telegram/link",
             json={
                 "telegram_id": message.from_user.id,
                 "code": code,
