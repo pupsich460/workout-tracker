@@ -2,11 +2,11 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     exercise_router,
+    telegram_auth_router,
     user_router,
     workout_log_router,
     workout_router,
     workout_schedule_router,
-    telegram_auth_router,
 )
 
 main_router = APIRouter()
