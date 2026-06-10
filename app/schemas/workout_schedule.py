@@ -14,6 +14,3 @@ class WorkoutScheduleDB(WorkoutScheduleCreate):
     id: int
     user_id: int
     is_active: bool
-
-    class Config:
-        from_attributes = True

@@ -3,7 +3,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from telegram_bot.keyboards import level_keyboard
+from telegram_bot.keyboards import goal_keyboard, level_keyboard
 from telegram_bot.services.auth import get_or_restore_token
 from telegram_bot.states import GenerateStates
 from telegram_bot.storage import API_URL
@@ -19,34 +19,58 @@ async def cmd_generate(message: Message, state: FSMContext):
         await message.answer("Сначала привяжи аккаунт через /link CODE")
         return
 
-    await message.answer("Введи цель (например: похудеть, набрать массу):")
+    await message.answer(
+        "Выбери цель тренировки:",
+        reply_markup=goal_keyboard,
+    )
     await state.set_state(GenerateStates.waiting_goal)
 
 
-@router.message(GenerateStates.waiting_goal)
-async def process_goal(message: Message, state: FSMContext):
-    await state.update_data(goal=message.text)
-    await message.answer("Введи текущий вес (кг):")
+@router.callback_query(GenerateStates.waiting_goal)
+async def process_goal(callback: CallbackQuery, state: FSMContext):
+    goal = callback.data.replace("goal_", "")
+
+    await state.update_data(goal=goal)
+
+    await callback.message.answer("Введи текущий вес (кг):")
+    await callback.answer()
+
     await state.set_state(GenerateStates.waiting_weight)
 
 
 @router.message(GenerateStates.waiting_weight)
 async def process_weight(message: Message, state: FSMContext):
-    await state.update_data(current_weight=int(message.text))
+    try:
+        weight = int(message.text)
+    except ValueError:
+        await message.answer("Введите число.")
+        return
+
+    await state.update_data(current_weight=weight)
+
     await message.answer("Сколько тренировок в неделю?")
     await state.set_state(GenerateStates.waiting_days)
 
 
 @router.message(GenerateStates.waiting_days)
 async def process_days(message: Message, state: FSMContext):
-    await state.update_data(days_per_week=int(message.text))
-    await message.answer("Уровень подготовки:", reply_markup=level_keyboard)
+    try:
+        days = int(message.text)
+    except ValueError:
+        await message.answer("Введите число.")
+        return
+
+    await state.update_data(days_per_week=days)
+
+    await message.answer(
+        "Выбери уровень подготовки:",
+        reply_markup=level_keyboard,
+    )
     await state.set_state(GenerateStates.waiting_level)
 
 
 @router.callback_query(GenerateStates.waiting_level)
 async def process_level(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
     token = await get_or_restore_token(callback.from_user.id)
 
     if not token:
@@ -55,12 +79,14 @@ async def process_level(callback: CallbackQuery, state: FSMContext):
         await state.clear()
         return
 
-    level = callback.data
+    data = await state.get_data()
+
+    level = callback.data.replace("level_", "")
 
     await callback.message.answer("⏳ Генерирую тренировку...")
     await callback.answer()
 
-    async with httpx.AsyncClient(timeout=30) as client:
+    async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(
             f"{API_URL}/workouts/ai/generate",
             headers={"Authorization": f"Bearer {token}"},
@@ -78,10 +104,15 @@ async def process_level(callback: CallbackQuery, state: FSMContext):
         return
 
     workout = response.json()
+
     text = f"✅ Тренировка создана: *{workout['name']}*\n\n"
 
     for we in workout.get("workout_exercises", []):
-        text += f"• {we['exercise']['name']} — {we['sets']}x{we['reps']}\n"
+        text += f"• {we['exercise']['name']} — " f"{we['sets']}x{we['reps']}\n"
 
-    await callback.message.answer(text, parse_mode="Markdown")
+    await callback.message.answer(
+        text,
+        parse_mode="Markdown",
+    )
+
     await state.clear()

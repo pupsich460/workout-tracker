@@ -27,3 +27,10 @@ class AddExerciseStates(StatesGroup):
     waiting_exercise_name = State()
     waiting_sets = State()
     waiting_reps = State()
+
+
+class ScheduleStates(StatesGroup):
+    waiting_workout = State()
+    waiting_weekday = State()
+    waiting_time = State()
+    waiting_reminder_minutes = State()

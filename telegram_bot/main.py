@@ -4,7 +4,15 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from app.core.config import settings
-from telegram_bot.routers import auth, generate, logs, workouts
+from telegram_bot.routers import (
+    auth,
+    common,
+    generate,
+    logs,
+    logs_history,
+    schedules,
+    workouts,
+)
 
 bot = Bot(token=settings.bot_token)
 dp = Dispatcher(storage=MemoryStorage())
@@ -13,6 +21,9 @@ dp.include_router(auth.router)
 dp.include_router(workouts.router)
 dp.include_router(generate.router)
 dp.include_router(logs.router)
+dp.include_router(logs_history.router)
+dp.include_router(common.router)
+dp.include_router(schedules.router)
 
 
 async def main():
