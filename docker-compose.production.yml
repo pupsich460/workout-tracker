@@ -48,6 +48,19 @@ services:
       redis:
         condition: service_started
     command: celery -A app.core.celery_app worker --loglevel=info
+
+  celery_beat:
+    image: pupsich460/workout-tracker-api:latest
+    restart: always
+    env_file: .env
+    depends_on:
+      backend:
+        condition: service_healthy
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
+    command: celery -A app.core.celery_app beat --loglevel=info
   
   flower:
     image: pupsich460/workout-tracker-api:latest
@@ -56,6 +69,7 @@ services:
     depends_on:
       - redis
       - celery
+      - celery_beat
     command: celery -A app.core.celery_app flower --port=5555
     ports:
       - "5555:5555"
