@@ -77,7 +77,7 @@ async def list_schedules(callback: CallbackQuery):
 
     async with httpx.AsyncClient() as client:
         schedules_response = await client.get(
-            f"{API_URL}/schedules/",
+            f"{API_URL}/workout-schedules/schedules/",
             headers={"Authorization": f"Bearer {token}"},
         )
 
