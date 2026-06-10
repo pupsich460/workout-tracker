@@ -239,7 +239,7 @@ async def process_reminder_minutes(callback: CallbackQuery, state: FSMContext):
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{API_URL}/schedules/",
+            f"{API_URL}/workout-schedules/schedules/",
             headers={"Authorization": f"Bearer {token}"},
             json={
                 "workout_id": data["workout_id"],
@@ -267,7 +267,7 @@ async def start_delete_schedule(callback: CallbackQuery):
 
     async with httpx.AsyncClient() as client:
         response = await client.get(
-            f"{API_URL}/schedules/",
+            f"{API_URL}/workout-schedules/schedules/",
             headers={"Authorization": f"Bearer {token}"},
         )
 
@@ -314,7 +314,7 @@ async def start_delete_schedule(callback: CallbackQuery):
 
     async with httpx.AsyncClient() as client:
         schedules_response = await client.get(
-            f"{API_URL}/schedules/",
+            f"{API_URL}/workout-schedules/schedules/",
             headers={"Authorization": f"Bearer {token}"},
         )
 
