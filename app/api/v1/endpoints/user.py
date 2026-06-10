@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app.api.validators import check_telegram_id_duplicate
 from app.core.dependencies import RedisDep, SessionDep
 from app.core.logger import setup_logger
-from app.core.user import auth_backend, current_user, fastapi_users
+from app.core.user import auth_backend, current_user, fastapi_users, get_jwt_strategy
 from app.models.user import User
 from app.schemas.user import (
     TelegramLinkByCodeRequest,
@@ -97,8 +97,14 @@ async def link_telegram_by_code(
 
     session.add(user)
     await session.commit()
-    logger.info(
-        f"Пользователь {user.email} привязал Telegram ID {data.telegram_id} по коду {data.code}"
-    )
 
-    return {"detail": "Telegram привязан"}
+    strategy = get_jwt_strategy()
+    access_token = await strategy.write_token(user)
+
+    logger.info(f"Пользователь {user.email} привязал Telegram ID {data.telegram_id}")
+
+    return {
+        "detail": "Telegram привязан",
+        "email": user.email,
+        "access_token": access_token,
+    }
