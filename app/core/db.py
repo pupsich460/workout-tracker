@@ -1,6 +1,7 @@
 from sqlalchemy import Integer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 
@@ -18,7 +19,12 @@ class CommonMixin:
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
 
-engine = create_async_engine(settings.database_url, echo=settings.SQL_ECHO)
+engine = create_async_engine(
+    settings.database_url,
+    echo=settings.SQL_ECHO,
+    pool_pre_ping=True,
+    poolclass=NullPool,
+)
 
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
