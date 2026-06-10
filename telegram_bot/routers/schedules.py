@@ -198,7 +198,10 @@ async def process_schedule_weekday(callback: CallbackQuery, state: FSMContext):
     weekday = int(callback.data.replace("schedule_weekday_", ""))
 
     await state.update_data(weekday=weekday)
-    await callback.message.answer("Введи время тренировки в формате HH:MM")
+    await callback.message.answer(
+        "Введи время тренировки в формате HH:MM\n\n"
+        "⏰ Время указывается по Москве (МСК)"
+    )
     await state.set_state(ScheduleStates.waiting_time)
     await callback.answer()
 

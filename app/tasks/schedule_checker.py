@@ -1,5 +1,6 @@
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -9,9 +10,11 @@ from app.core.db import AsyncSessionLocal
 from app.models.workout_schedule import WorkoutSchedule
 from app.tasks.reminders import send_workout_reminder
 
+APP_TIMEZONE = ZoneInfo("Europe/Moscow")
+
 
 async def _check_workout_schedules():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(APP_TIMEZONE)
     current_weekday = now.weekday()
 
     async with AsyncSessionLocal() as session:
@@ -33,7 +36,7 @@ async def _check_workout_schedules():
             workout_datetime = datetime.combine(
                 now.date(),
                 schedule.workout_time,
-                tzinfo=timezone.utc,
+                tzinfo=APP_TIMEZONE,
             )
 
             reminder_datetime = workout_datetime - timedelta(
@@ -42,7 +45,8 @@ async def _check_workout_schedules():
 
             already_reminded_today = (
                 schedule.last_reminder_at is not None
-                and schedule.last_reminder_at.date() == now.date()
+                and schedule.last_reminder_at.astimezone(APP_TIMEZONE).date()
+                == now.date()
             )
 
             if already_reminded_today:
