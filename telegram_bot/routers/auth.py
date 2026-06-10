@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from telegram_bot.keyboards import main_menu_keyboard
-from telegram_bot.storage import API_URL
+from telegram_bot.storage import API_URL, user_tokens
 
 router = Router()
 
@@ -44,6 +44,10 @@ async def cmd_link(message: Message):
     if response.status_code == 200:
         data = response.json()
         email = data.get("email")
+
+        token = data.get("access_token")
+        if token:
+            user_tokens[message.from_user.id] = token
 
         if email:
             await message.answer(f"✅ Telegram привязан к аккаунту {email}")
