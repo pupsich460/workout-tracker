@@ -62,6 +62,6 @@ async def delete_workout_schedule(
     user: User = Depends(current_user),
 ):
     try:
-        await workout_schedule_crud.remove(schedule_id, session, user)
+        await workout_schedule_crud.delete(schedule_id, session, user)
     except ValueError:
         raise HTTPException(status_code=404, detail="Schedule not found")

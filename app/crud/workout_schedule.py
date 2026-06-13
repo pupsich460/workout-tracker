@@ -48,7 +48,7 @@ class CRUDWorkoutSchedule(CRUDBase):
         schedule_id: int,
         session: AsyncSession,
         user,
-    ) -> None:
+    ) -> WorkoutSchedule:
         schedule = await session.get(WorkoutSchedule, schedule_id)
 
         if schedule is None or schedule.user_id != user.id:

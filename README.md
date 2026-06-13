@@ -1,70 +1,123 @@
 # 🏋️ Workout Tracker API
 
-REST API для управления тренировками, ведения истории занятий и автоматизации фитнес-процессов.
+REST API и Telegram-бот для управления тренировками, планирования занятий, ведения истории тренировок и автоматизации фитнес-процессов.
 
 Проект построен на **FastAPI** и включает:
 
 * JWT-аутентификацию
 * PostgreSQL
-* Redis + Celery
-* Telegram Bot
+* Redis
+* Celery Worker
+* Celery Beat
+* Flower Monitoring
+* Telegram Bot на Aiogram 3
 * AI-генерацию тренировок через Groq
 * Docker и Docker Compose
 * GitHub Actions CI/CD
 * Автоматическую публикацию Docker-образов в Docker Hub
+* Автоматический деплой на VPS
 
 ---
 
-## 🚀 Features
+# 🚀 Features
 
-### Authentication
+## Authentication
 
 * Регистрация пользователей
 * JWT-аутентификация
 * Защищённые эндпоинты
+* Привязка Telegram аккаунта через одноразовый код
+* Автоматическая авторизация Telegram-пользователей
 
-### Exercises
+## Exercises
 
 * Создание упражнений
 * Редактирование упражнений
 * Удаление упражнений
 * Просмотр списка упражнений
 
-### Workouts
+## Workouts
 
 * Создание тренировок
-* Добавление упражнений
 * Редактирование тренировок
 * Удаление тренировок
+* Добавление упражнений в тренировку
+* Просмотр тренировок пользователя
 
-### Workout Logs
+## Workout Logs
 
 * Ведение истории тренировок
-* Отслеживание выполнения тренировок
+* Отслеживание выполненных тренировок
 
-### Workout Schedule
+## Workout Schedule
 
-* Планирование тренировок
-* Хранение расписания пользователя
+* Создание расписания тренировок
+* Просмотр расписания
+* Удаление расписания
+* Планирование тренировок по дням недели
 
-### Telegram Bot
+## Notifications
 
-* Авторизация через API
+* Автоматические напоминания о тренировках
+* Отправка уведомлений через Telegram
+* Celery Beat для запуска планировщика
+* Celery Worker для обработки фоновых задач
+
+## Telegram Bot
+
+* Привязка Telegram аккаунта
+* Автоматическая авторизация по Telegram ID
 * Просмотр тренировок
 * Создание тренировок
-* Логирование тренировок
+* Удаление тренировок
+* Добавление упражнений
+* Логирование выполненных тренировок
+* Создание расписания тренировок
+* Просмотр расписания
+* Удаление расписания
 * AI-генерация тренировочных программ
+* Получение автоматических напоминаний
 
-### AI Integration
+## AI Integration
 
 * Генерация тренировок через Groq API
-* Формирование плана на основе параметров пользователя
+* Использование модели Llama 3.3 70B Versatile
+* Формирование тренировочного плана на основе параметров пользователя
+
+## Monitoring
+
+* Flower для мониторинга Celery задач
+* Просмотр активных задач
+* Просмотр очередей
+* Мониторинг воркеров
 
 ---
 
-## 🛠 Tech Stack
+# 🏗 Architecture
 
-### Backend
+```text
+Telegram Bot (Aiogram)
+            │
+            ▼
+      FastAPI Backend
+            │
+ ┌──────────┴──────────┐
+ ▼                     ▼
+PostgreSQL           Redis
+                         │
+             ┌───────────┴───────────┐
+             ▼                       ▼
+      Celery Worker           Celery Beat
+             │
+             ▼
+ Telegram Notifications
+```
+
+---
+
+# 🛠 Tech Stack
+
+## Backend
 
 * FastAPI
 * SQLAlchemy Async
@@ -73,37 +126,40 @@ REST API для управления тренировками, ведения и
 * Pydantic v2
 * FastAPI Users
 
-### Background Tasks
+## Background Tasks
 
 * Redis
 * Celery
+* Celery Beat
+* Flower
 
-### Telegram Bot
+## Telegram Bot
 
 * Aiogram 3
 * FSM
 
-### AI
+## AI
 
 * Groq API
 * Llama 3.3 70B Versatile
 
-### Testing
+## Testing
 
 * Pytest
 * Pytest Asyncio
 * Pytest Cov
 
-### DevOps
+## DevOps
 
 * Docker
 * Docker Compose
 * GitHub Actions
 * Docker Hub
+* VPS Deployment
 
 ---
 
-## 📁 Project Structure
+# 📁 Project Structure
 
 ```text
 .
@@ -129,7 +185,7 @@ REST API для управления тренировками, ведения и
 
 ---
 
-## ⚙️ Environment Variables
+# ⚙️ Environment Variables
 
 Создай файл `.env` на основе `.env.example`.
 
@@ -139,6 +195,7 @@ REST API для управления тренировками, ведения и
 APP_TITLE=Workout Tracker API
 
 SECRET=
+
 GROQ_API_KEY=
 BOT_TOKEN=
 
@@ -156,7 +213,7 @@ REDIS_PORT=6379
 
 ---
 
-## 🐳 Docker
+# 🐳 Docker
 
 Сборка образа:
 
@@ -172,7 +229,7 @@ docker run -p 8000:8000 workout-tracker-api
 
 ---
 
-## 🐳 Docker Compose
+# 🐳 Docker Compose
 
 Production окружение включает:
 
@@ -180,6 +237,8 @@ Production окружение включает:
 * PostgreSQL
 * Redis
 * Celery Worker
+* Celery Beat
+* Flower
 * Telegram Bot
 
 Запуск:
@@ -194,9 +253,33 @@ docker compose -f docker-compose.production.yml up -d
 docker compose -f docker-compose.production.yml down
 ```
 
+Просмотр логов:
+
+```bash
+docker compose -f docker-compose.production.yml logs -f
+```
+
 ---
 
-## 🗄 Database Migrations
+# 🌼 Flower Monitoring
+
+После запуска:
+
+```text
+http://SERVER_IP:5555
+```
+
+Доступны:
+
+* Active Tasks
+* Scheduled Tasks
+* Workers
+* Queues
+* Task History
+
+---
+
+# 🗄 Database Migrations
 
 Создать миграцию:
 
@@ -212,7 +295,7 @@ alembic upgrade head
 
 ---
 
-## 🧪 Testing
+# 🧪 Testing
 
 Запуск тестов:
 
@@ -226,15 +309,9 @@ pytest
 pytest --cov=app
 ```
 
-Текущее покрытие проекта:
-
-```text
-73%
-```
-
 ---
 
-## 🔍 Code Quality
+# 🔍 Code Quality
 
 Форматирование:
 
@@ -248,18 +325,53 @@ black .
 isort .
 ```
 
+Проверка:
+
+```bash
+black --check .
+isort --check-only .
+```
+
 ---
 
-## 🔄 CI/CD
+# 🤖 Telegram Bot
+
+Основное меню:
+
+```text
+💪 Мои тренировки
+➕ Создать тренировку
+🤖 Сгенерировать тренировку
+📝 Отметить тренировку
+⏰ Напоминания
+```
+
+Поддерживаемые функции:
+
+* Просмотр тренировок
+* Создание тренировок
+* Удаление тренировок
+* Добавление упражнений
+* Логирование тренировок
+* Создание расписания
+* Просмотр расписания
+* Удаление расписания
+* AI-генерация тренировок
+* Автоматические напоминания
+
+---
+
+# 🔄 CI/CD
 
 GitHub Actions автоматически выполняет:
 
 * Проверку Black
 * Проверку isort
 * Запуск Pytest
-* Проверку покрытия
 * Сборку Docker-образа
-* Публикацию образа в Docker Hub
+* Публикацию Docker-образа в Docker Hub
+* Автоматический деплой на VPS
+* Применение миграций базы данных
 
 Workflow запускается при:
 
@@ -268,7 +380,28 @@ Workflow запускается при:
 
 ---
 
-## 🐋 Docker Hub
+# 🔐 GitHub Secrets
+
+Для работы CI/CD необходимо добавить следующие секреты:
+
+## Docker Hub
+
+| Secret          | Description             |
+| --------------- | ----------------------- |
+| DOCKER_USERNAME | Docker Hub username     |
+| DOCKER_PASSWORD | Docker Hub access token |
+
+## VPS Deployment
+
+| Secret  | Description        |
+| ------- | ------------------ |
+| HOST    | IP адрес сервера   |
+| USER    | SSH пользователь   |
+| SSH_KEY | Приватный SSH ключ |
+
+---
+
+# 🐋 Docker Hub
 
 Образ проекта:
 
@@ -278,7 +411,7 @@ docker pull pupsich460/workout-tracker-api:latest
 
 ---
 
-## 📚 API Documentation
+# 📚 API Documentation
 
 После запуска приложения:
 
@@ -296,19 +429,44 @@ http://localhost:8000/redoc
 
 ---
 
-## 📌 Main Endpoints
+# 📌 Main Endpoints
 
-| Method | Endpoint                | Description              |
-| ------ | ----------------------- | ------------------------ |
-| POST   | `/auth/register`        | User registration        |
-| POST   | `/auth/jwt/login`       | JWT login                |
-| GET    | `/exercises/`           | List exercises           |
-| POST   | `/exercises/`           | Create exercise          |
-| GET    | `/workouts/`            | List workouts            |
-| POST   | `/workouts/`            | Create workout           |
-| POST   | `/workouts/ai/generate` | Generate workout with AI |
-| GET    | `/workout-logs/`        | List workout logs        |
-| POST   | `/workout-logs/`        | Create workout log       |
-| POST   | `/users/link-telegram`  | Link Telegram account    |
+# 📌 Main Endpoints
+
+| Method | Endpoint | Description |
+|----------|----------|-------------|
+| POST | `/auth/register` | User registration |
+| POST | `/auth/jwt/login` | JWT login |
+| GET | `/exercises/` | List exercises |
+| POST | `/exercises/` | Create exercise |
+| GET | `/workouts/` | List workouts |
+| POST | `/workouts/` | Create workout |
+| GET | `/workouts/{workout_id}` | Get workout detail |
+| DELETE | `/workouts/{workout_id}` | Delete workout |
+| POST | `/workouts/{workout_id}/exercises` | Add exercise to workout |
+| DELETE | `/workouts/{workout_id}/exercises/{exercise_id}` | Remove exercise from workout |
+| POST | `/workouts/ai/generate` | Generate workout with AI |
+| GET | `/workout-logs/` | List workout logs |
+| POST | `/workout-logs/` | Create workout log |
+| POST | `/telegram/link-code` | Generate Telegram link code |
+| POST | `/telegram/link` | Link Telegram account by code |
+| POST | `/telegram/auth` | Authenticate Telegram user |
+| GET | `/workout-schedules/schedules/` | List workout schedules |
+| POST | `/workout-schedules/schedules/` | Create workout schedule |
+| PATCH | `/workout-schedules/schedules/{schedule_id}/deactivate` | Deactivate workout schedule |
+| DELETE | `/workout-schedules/schedules/{schedule_id}` | Delete workout schedule |
+
+---
+
+# 🎯 Project Goals
+
+* Практика построения production-ready FastAPI приложения
+* Работа с PostgreSQL и SQLAlchemy Async
+* Интеграция Redis и Celery
+* Интеграция Telegram Bot
+* Интеграция AI сервисов
+* Настройка CI/CD пайплайна
+* Контейнеризация приложения через Docker
+* Автоматический деплой на VPS
 
 ---

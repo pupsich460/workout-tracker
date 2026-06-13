@@ -9,7 +9,7 @@ from aiogram.types import (
 )
 
 from telegram_bot.keyboards import reminder_minutes_keyboard
-from telegram_bot.services.auth import get_or_restore_token
+from telegram_bot.routers.deps import require_token
 from telegram_bot.states import ScheduleStates
 from telegram_bot.storage import API_URL
 
@@ -24,20 +24,6 @@ WEEKDAYS = {
     5: "Суббота",
     6: "Воскресенье",
 }
-
-
-async def require_token(message_or_callback) -> str | None:
-    token = await get_or_restore_token(message_or_callback.from_user.id)
-
-    if not token:
-        target = (
-            message_or_callback.message
-            if isinstance(message_or_callback, CallbackQuery)
-            else message_or_callback
-        )
-        await target.answer("Сначала привяжи аккаунт через /link CODE")
-
-    return token
 
 
 @router.message(F.text == "⏰ Напоминания")
