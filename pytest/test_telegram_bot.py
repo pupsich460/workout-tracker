@@ -1,10 +1,10 @@
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from aiogram import Dispatcher
 from aiogram.filters import CommandStart
 from aiogram.types import Chat, Message, Update, User
 
+import pytest
 from telegram_bot.routers import auth, common, logs, workouts
 
 
