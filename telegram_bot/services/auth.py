@@ -1,10 +1,10 @@
 import httpx
 
-from telegram_bot.storage import API_URL, user_tokens
+from telegram_bot.storage import API_URL, get_token, set_token
 
 
 async def get_or_restore_token(telegram_id: int) -> str | None:
-    token = user_tokens.get(telegram_id)
+    token = await get_token(telegram_id)
 
     if token:
         return token
@@ -22,6 +22,6 @@ async def get_or_restore_token(telegram_id: int) -> str | None:
 
     token = data["access_token"]
 
-    user_tokens[telegram_id] = token
+    await set_token(telegram_id, token)
 
     return token

@@ -17,3 +17,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         unique=True,
         nullable=True,
     )
+    bot_token: Mapped[str | None] = mapped_column(
+        String(512),
+        nullable=True,
+    )
