@@ -1,10 +1,9 @@
 import asyncio
 
 from aiogram import Bot, Dispatcher
-from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.fsm.storage.memory import MemoryStorage
 
 from app.core.config import settings
-from app.core.redis import redis_client
 from telegram_bot.routers import (
     auth,
     common,
@@ -16,7 +15,7 @@ from telegram_bot.routers import (
 )
 
 bot = Bot(token=settings.bot_token)
-dp = Dispatcher(storage=RedisStorage(redis=redis_client))
+dp = Dispatcher(storage=MemoryStorage())
 
 dp.include_router(auth.router)
 dp.include_router(workouts.router)

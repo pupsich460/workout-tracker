@@ -86,8 +86,6 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     command: python -m telegram_bot.main
 
 volumes:
