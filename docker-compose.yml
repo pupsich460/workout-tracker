@@ -16,7 +16,10 @@ services:
     env_file:
       - .env
     depends_on:
-      - api
+      api:
+        condition: service_started
+      redis:
+        condition: service_healthy
 
   db:
     image: postgres:16
@@ -44,6 +47,11 @@ services:
     depends_on:
       - api
       - db
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

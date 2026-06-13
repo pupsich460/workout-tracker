@@ -12,6 +12,11 @@ services:
   redis:
     image: redis:7
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     image: pupsich460/workout-tracker-api:latest
@@ -81,10 +86,8 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-      db:
-        condition: service_started
       redis:
-        condition: service_started
+        condition: service_healthy
     command: python -m telegram_bot.main
 
 volumes:
