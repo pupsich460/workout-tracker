@@ -19,6 +19,7 @@ def make_message(text: str, user_id: int = 123456) -> MagicMock:
 @pytest.mark.asyncio
 async def test_cmd_start():
     import telegram_bot.routers.auth as am
+
     importlib.reload(am)
 
     message = make_message("/start")
@@ -29,6 +30,7 @@ async def test_cmd_start():
 @pytest.mark.asyncio
 async def test_cmd_link_no_code():
     import telegram_bot.routers.auth as am
+
     importlib.reload(am)
 
     message = make_message("/link")
@@ -39,6 +41,7 @@ async def test_cmd_link_no_code():
 @pytest.mark.asyncio
 async def test_cmd_cancel_no_state():
     import telegram_bot.routers.common as cm
+
     importlib.reload(cm)
 
     state = AsyncMock()
@@ -53,6 +56,7 @@ class TestWorkoutsBot:
     @pytest.mark.asyncio
     async def test_get_workouts_no_token(self):
         import telegram_bot.routers.workouts as wm
+
         importlib.reload(wm)
 
         # require_token сама вызывает answer на message и возвращает None
@@ -69,6 +73,7 @@ class TestWorkoutsBot:
     @pytest.mark.asyncio
     async def test_get_workouts_empty(self):
         import telegram_bot.routers.workouts as wm
+
         importlib.reload(wm)
 
         mock_response = MagicMock()
@@ -80,8 +85,10 @@ class TestWorkoutsBot:
         mock_client.__aexit__ = AsyncMock(return_value=False)
         mock_client.get.return_value = mock_response
 
-        with patch.object(wm, "require_token", new=AsyncMock(return_value="test-token")), \
-             patch.object(wm.httpx, "AsyncClient", return_value=mock_client):
+        with (
+            patch.object(wm, "require_token", new=AsyncMock(return_value="test-token")),
+            patch.object(wm.httpx, "AsyncClient", return_value=mock_client),
+        ):
             message = make_message("💪 Мои тренировки")
             await wm.get_workouts(message)
             message.answer.assert_called()
@@ -89,6 +96,7 @@ class TestWorkoutsBot:
     @pytest.mark.asyncio
     async def test_get_workouts_with_data(self):
         import telegram_bot.routers.workouts as wm
+
         importlib.reload(wm)
 
         mock_response = MagicMock()
@@ -102,8 +110,10 @@ class TestWorkoutsBot:
         mock_client.__aexit__ = AsyncMock(return_value=False)
         mock_client.get.return_value = mock_response
 
-        with patch.object(wm, "require_token", new=AsyncMock(return_value="test-token")), \
-             patch.object(wm.httpx, "AsyncClient", return_value=mock_client):
+        with (
+            patch.object(wm, "require_token", new=AsyncMock(return_value="test-token")),
+            patch.object(wm.httpx, "AsyncClient", return_value=mock_client),
+        ):
             message = make_message("💪 Мои тренировки")
             await wm.get_workouts(message)
             message.answer.assert_called()
@@ -113,6 +123,7 @@ class TestLogsBot:
     @pytest.mark.asyncio
     async def test_log_no_token(self):
         import telegram_bot.routers.logs as lm
+
         importlib.reload(lm)
 
         async def fake_require_token(msg):
@@ -127,6 +138,7 @@ class TestLogsBot:
     @pytest.mark.asyncio
     async def test_log_no_workouts(self):
         import telegram_bot.routers.logs as lm
+
         importlib.reload(lm)
 
         mock_response = MagicMock()
@@ -138,8 +150,10 @@ class TestLogsBot:
         mock_client.__aexit__ = AsyncMock(return_value=False)
         mock_client.get.return_value = mock_response
 
-        with patch.object(lm, "require_token", new=AsyncMock(return_value="test-token")), \
-             patch.object(lm.httpx, "AsyncClient", return_value=mock_client):
+        with (
+            patch.object(lm, "require_token", new=AsyncMock(return_value="test-token")),
+            patch.object(lm.httpx, "AsyncClient", return_value=mock_client),
+        ):
             message = make_message("📝 Отметить тренировку")
             await lm.cmd_log(message)
             message.answer.assert_called()
