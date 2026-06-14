@@ -1,314 +1,164 @@
 # 🏋️ Workout Tracker API
 
-REST API для управления тренировками, ведения истории занятий и автоматизации фитнес-процессов.
+FastAPI-приложение для трекинга тренировок с Telegram-ботом, AI-генерацией тренировок и системой напоминаний.
 
-Проект построен на **FastAPI** и включает:
+## Возможности
 
-* JWT-аутентификацию
-* PostgreSQL
-* Redis + Celery
-* Telegram Bot
-* AI-генерацию тренировок через Groq
-* Docker и Docker Compose
-* GitHub Actions CI/CD
-* Автоматическую публикацию Docker-образов в Docker Hub
+- Регистрация и аутентификация пользователей (JWT через fastapi-users)
+- CRUD для тренировок, упражнений и логов тренировок
+- Добавление упражнений в тренировки с указанием подходов и повторений
+- Расписание тренировок с напоминаниями
+- Генерация тренировок через Groq API (llama-3.3-70b-versatile)
+- Telegram-бот (aiogram 3) — управление тренировками, логирование, AI-генерация
+- Асинхронный стек: FastAPI + SQLAlchemy (async) + PostgreSQL
+- Celery + Redis для фоновых задач и напоминаний
 
----
+## Стек
 
-## 🚀 Features
+| Слой | Технологии |
+|---|---|
+| API | FastAPI, fastapi-users |
+| База данных | PostgreSQL, SQLAlchemy (async), Alembic |
+| Фоновые задачи | Celery, Redis |
+| Telegram-бот | aiogram 3 |
+| AI | Groq API (llama-3.3-70b-versatile) |
+| Тесты | pytest, pytest-asyncio, pytest-cov |
+| Линтер | Ruff |
+| Контейнеризация | Docker, Docker Compose |
+| CI/CD | GitHub Actions → Docker Hub → VPS |
 
-### Authentication
+## Быстрый старт
 
-* Регистрация пользователей
-* JWT-аутентификация
-* Защищённые эндпоинты
+### Локально (для разработки)
 
-### Exercises
-
-* Создание упражнений
-* Редактирование упражнений
-* Удаление упражнений
-* Просмотр списка упражнений
-
-### Workouts
-
-* Создание тренировок
-* Добавление упражнений
-* Редактирование тренировок
-* Удаление тренировок
-
-### Workout Logs
-
-* Ведение истории тренировок
-* Отслеживание выполнения тренировок
-
-### Workout Schedule
-
-* Планирование тренировок
-* Хранение расписания пользователя
-
-### Telegram Bot
-
-* Авторизация через API
-* Просмотр тренировок
-* Создание тренировок
-* Логирование тренировок
-* AI-генерация тренировочных программ
-
-### AI Integration
-
-* Генерация тренировок через Groq API
-* Формирование плана на основе параметров пользователя
-
----
-
-## 🛠 Tech Stack
-
-### Backend
-
-* FastAPI
-* SQLAlchemy Async
-* PostgreSQL
-* Alembic
-* Pydantic v2
-* FastAPI Users
-
-### Background Tasks
-
-* Redis
-* Celery
-
-### Telegram Bot
-
-* Aiogram 3
-* FSM
-
-### AI
-
-* Groq API
-* Llama 3.3 70B Versatile
-
-### Testing
-
-* Pytest
-* Pytest Asyncio
-* Pytest Cov
-
-### DevOps
-
-* Docker
-* Docker Compose
-* GitHub Actions
-* Docker Hub
-
----
-
-## 📁 Project Structure
-
-```text
-.
-├── alembic/
-├── app/
-│   ├── api/
-│   ├── core/
-│   ├── crud/
-│   ├── models/
-│   ├── schemas/
-│   ├── services/
-│   ├── tasks/
-│   └── main.py
-├── telegram_bot/
-├── pytest/
-├── .github/
-│   └── workflows/
-├── Dockerfile
-├── docker-compose.production.yml
-├── requirements.txt
-└── README.md
+```bash
+git clone https://github.com/pupsich460/workout-tracker.git
+cd workout-tracker
+cp .env.example .env  # заполни переменные
+docker compose up -d
+docker compose exec backend alembic upgrade head
 ```
 
----
+API будет доступно на `http://localhost:8000`.  
+Документация: `http://localhost:8000/docs`.
 
-## ⚙️ Environment Variables
+### Production
 
-Создай файл `.env` на основе `.env.example`.
+```bash
+docker compose -f docker-compose.production.yml pull
+docker compose -f docker-compose.production.yml up -d
+docker compose -f docker-compose.production.yml exec backend alembic upgrade head
+```
 
-Пример:
+## Переменные окружения
 
 ```env
-APP_TITLE=Workout Tracker API
-
-SECRET=
-GROQ_API_KEY=
-BOT_TOKEN=
-
-API_URL=http://backend:8000
-
-DB_HOST=db
+DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=tracker_db
 DB_USER=postgres
 DB_PASSWORD=postgres
-
+SECRET=your-secret-key
+GROQ_API_KEY=your-groq-api-key
+BOT_TOKEN=your-telegram-bot-token
+API_URL=http://backend:8000
 REDIS_HOST=redis
 REDIS_PORT=6379
+SQL_ECHO=false
 ```
 
----
+## API — основные эндпоинты
 
-## 🐳 Docker
+### Аутентификация
+| Метод | URL | Описание |
+|---|---|---|
+| POST | `/auth/register` | Регистрация |
+| POST | `/auth/jwt/login` | Вход, получение токена |
 
-Сборка образа:
+### Тренировки
+| Метод | URL | Описание |
+|---|---|---|
+| GET | `/workouts/` | Список тренировок |
+| POST | `/workouts/` | Создать тренировку |
+| GET | `/workouts/{id}` | Получить тренировку |
+| PATCH | `/workouts/{id}` | Обновить тренировку |
+| DELETE | `/workouts/{id}` | Удалить тренировку |
+| GET | `/workouts/{id}/exercises` | Упражнения в тренировке |
+| POST | `/workouts/{id}/exercises` | Добавить упражнение в тренировку |
+| DELETE | `/workouts/{id}/exercises/{ex_id}` | Удалить упражнение из тренировки |
+| POST | `/workouts/ai/generate` | AI-генерация тренировки |
+
+### Упражнения
+| Метод | URL | Описание |
+|---|---|---|
+| GET | `/exercises/` | Список упражнений |
+| POST | `/exercises/` | Создать упражнение |
+| GET | `/exercises/{id}` | Получить упражнение |
+| PATCH | `/exercises/{id}` | Обновить упражнение |
+| DELETE | `/exercises/{id}` | Удалить упражнение |
+
+### Логи тренировок
+| Метод | URL | Описание |
+|---|---|---|
+| GET | `/workout-logs/` | Список логов |
+| POST | `/workout-logs/` | Отметить тренировку выполненной |
+| GET | `/workout-logs/{id}` | Получить лог |
+| PATCH | `/workout-logs/{id}` | Обновить лог |
+| DELETE | `/workout-logs/{id}` | Удалить лог |
+
+### Расписание
+| Метод | URL | Описание |
+|---|---|---|
+| GET | `/workout-schedules/schedules/` | Список расписаний |
+| POST | `/workout-schedules/schedules/` | Создать расписание |
+| DELETE | `/workout-schedules/schedules/{id}` | Удалить расписание |
+
+## Тесты
 
 ```bash
-docker build -t workout-tracker-api .
+# Запустить все тесты с покрытием
+PYTHONPATH=. pytest --cov=app --cov=telegram_bot --cov-report=term
+
+# Только API-тесты
+PYTHONPATH=. pytest pytest/test_workouts.py pytest/test_exercises.py pytest/test_workout_logs.py -v
 ```
 
-Запуск контейнера:
+## CI/CD
 
-```bash
-docker run -p 8000:8000 workout-tracker-api
+GitHub Actions запускает при каждом push в `master`:
+
+1. **Проверки** — `ruff format`, `ruff check`, тесты с покрытием
+2. **Сборка** — Docker-образ публикуется на Docker Hub
+3. **Деплой** — автоматический деплой на VPS через SSH
+
+### Secrets (GitHub → Settings → Secrets and variables → Actions)
+
+| Secret | Описание |
+|---|---|
+| `DOCKER_USERNAME` | Логин на Docker Hub |
+| `DOCKER_PASSWORD` | Пароль или Access Token Docker Hub |
+| `HOST` | IP-адрес или домен VPS |
+| `USER` | SSH-пользователь на VPS (например, `root`) |
+| `SSH_KEY` | Приватный SSH-ключ для подключения к VPS |
+
+## Структура проекта
+
 ```
-
----
-
-## 🐳 Docker Compose
-
-Production окружение включает:
-
-* Backend API
-* PostgreSQL
-* Redis
-* Celery Worker
-* Telegram Bot
-
-Запуск:
-
-```bash
-docker compose -f docker-compose.production.yml up -d
+workout-tracker/
+├── app/
+│   ├── api/v1/endpoints/   # FastAPI роутеры
+│   ├── core/               # Конфиг, БД, зависимости, пользователи
+│   ├── crud/               # CRUD-операции
+│   ├── models/             # SQLAlchemy модели
+│   ├── schemas/            # Pydantic схемы
+│   ├── services/           # AI-генерация тренировок
+│   └── tasks/              # Celery задачи
+├── telegram_bot/
+│   ├── routers/            # Хендлеры aiogram
+│   ├── services/           # Логика бота
+│   └── states.py           # FSM состояния
+├── pytest/                 # Тесты
+├── docker-compose.yml
+├── docker-compose.production.yml
+└── Dockerfile
 ```
-
-Остановка:
-
-```bash
-docker compose -f docker-compose.production.yml down
-```
-
----
-
-## 🗄 Database Migrations
-
-Создать миграцию:
-
-```bash
-alembic revision --autogenerate -m "migration_name"
-```
-
-Применить миграции:
-
-```bash
-alembic upgrade head
-```
-
----
-
-## 🧪 Testing
-
-Запуск тестов:
-
-```bash
-pytest
-```
-
-Покрытие:
-
-```bash
-pytest --cov=app
-```
-
-Текущее покрытие проекта:
-
-```text
-73%
-```
-
----
-
-## 🔍 Code Quality
-
-Форматирование:
-
-```bash
-black .
-```
-
-Сортировка импортов:
-
-```bash
-isort .
-```
-
----
-
-## 🔄 CI/CD
-
-GitHub Actions автоматически выполняет:
-
-* Проверку Black
-* Проверку isort
-* Запуск Pytest
-* Проверку покрытия
-* Сборку Docker-образа
-* Публикацию образа в Docker Hub
-
-Workflow запускается при:
-
-* Push в `master`
-* Pull Request в `master`
-
----
-
-## 🐋 Docker Hub
-
-Образ проекта:
-
-```bash
-docker pull pupsich460/workout-tracker-api:latest
-```
-
----
-
-## 📚 API Documentation
-
-После запуска приложения:
-
-Swagger UI:
-
-```text
-http://localhost:8000/docs
-```
-
-ReDoc:
-
-```text
-http://localhost:8000/redoc
-```
-
----
-
-## 📌 Main Endpoints
-
-| Method | Endpoint                | Description              |
-| ------ | ----------------------- | ------------------------ |
-| POST   | `/auth/register`        | User registration        |
-| POST   | `/auth/jwt/login`       | JWT login                |
-| GET    | `/exercises/`           | List exercises           |
-| POST   | `/exercises/`           | Create exercise          |
-| GET    | `/workouts/`            | List workouts            |
-| POST   | `/workouts/`            | Create workout           |
-| POST   | `/workouts/ai/generate` | Generate workout with AI |
-| GET    | `/workout-logs/`        | List workout logs        |
-| POST   | `/workout-logs/`        | Create workout log       |
-| POST   | `/users/link-telegram`  | Link Telegram account    |
-
----

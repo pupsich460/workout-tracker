@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends
 
-from app.api.validators import check_name_duplicate, validate_exercise_owner
+from app.api.v1.validators import check_name_duplicate, validate_exercise_owner
 from app.core.dependencies import SessionDep
 from app.core.user import current_user
 from app.crud.exercise import exercise_crud

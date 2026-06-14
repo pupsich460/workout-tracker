@@ -82,7 +82,6 @@ class TestWorkouts:
         )
         assert response.status_code == 204
 
-        # Убеждаемся что тренировка удалена
         get_response = await client.get(
             f"/workouts/{workout['id']}", headers=auth_headers
         )
@@ -97,7 +96,6 @@ class TestWorkouts:
         self, client, workout, auth_headers
     ):
         """Другой пользователь не видит чужую тренировку."""
-        # Регистрируем второго пользователя
         await client.post(
             "/auth/register",
             json={
@@ -115,6 +113,73 @@ class TestWorkouts:
         other_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
 
         response = await client.get(f"/workouts/{workout['id']}", headers=other_headers)
+        assert response.status_code == 404
+
+    async def test_get_workouts_pagination(self, client, auth_headers):
+        """Пагинация — limit и offset работают корректно."""
+        for i in range(5):
+            await client.post(
+                "/workouts/",
+                json={"name": f"Тренировка {i}"},
+                headers=auth_headers,
+            )
+
+        response = await client.get(
+            "/workouts/?limit=2&offset=0", headers=auth_headers
+        )
+        assert response.status_code == 200
+        assert len(response.json()) == 2
+
+        response = await client.get(
+            "/workouts/?limit=2&offset=2", headers=auth_headers
+        )
+        assert response.status_code == 200
+        assert len(response.json()) == 2
+
+        response = await client.get(
+            "/workouts/?limit=2&offset=4", headers=auth_headers
+        )
+        assert response.status_code == 200
+        assert len(response.json()) == 1
+
+    async def test_other_user_cannot_delete_workout(
+        self, client, workout, auth_headers
+    ):
+        """Другой пользователь не может удалить чужую тренировку."""
+        await client.post(
+            "/auth/register",
+            json={"email": "other3@example.com", "password": "otherpass"},
+        )
+        login = await client.post(
+            "/auth/jwt/login",
+            data={"username": "other3@example.com", "password": "otherpass"},
+        )
+        other_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+        response = await client.delete(
+            f"/workouts/{workout['id']}", headers=other_headers
+        )
+        assert response.status_code == 404
+
+    async def test_other_user_cannot_update_workout(
+        self, client, workout, auth_headers
+    ):
+        """Другой пользователь не может обновить чужую тренировку."""
+        await client.post(
+            "/auth/register",
+            json={"email": "other4@example.com", "password": "otherpass"},
+        )
+        login = await client.post(
+            "/auth/jwt/login",
+            data={"username": "other4@example.com", "password": "otherpass"},
+        )
+        other_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+        response = await client.patch(
+            f"/workouts/{workout['id']}",
+            json={"name": "Взломано"},
+            headers=other_headers,
+        )
         assert response.status_code == 404
 
 
@@ -157,7 +222,6 @@ class TestWorkoutExercises:
 
     async def test_get_workout_exercises(self, client, auth_headers, workout, exercise):
         """Получение списка упражнений тренировки."""
-        # Добавляем упражнение
         await client.post(
             f"/workouts/{workout['id']}/exercises",
             json={
@@ -182,3 +246,82 @@ class TestWorkoutExercises:
         )
         assert response.status_code == 200
         assert response.json() == []
+
+    async def test_add_duplicate_exercise_to_workout(
+        self, client, auth_headers, workout, exercise
+    ):
+        """Добавление одного и того же упражнения дважды возвращает 400."""
+        await client.post(
+            f"/workouts/{workout['id']}/exercises",
+            json={
+                "workout_id": workout["id"],
+                "exercise_id": exercise["id"],
+                "sets": 3,
+                "reps": 10,
+            },
+            headers=auth_headers,
+        )
+
+        response = await client.post(
+            f"/workouts/{workout['id']}/exercises",
+            json={
+                "workout_id": workout["id"],
+                "exercise_id": exercise["id"],
+                "sets": 4,
+                "reps": 8,
+            },
+            headers=auth_headers,
+        )
+        assert response.status_code == 400
+
+    async def test_delete_exercise_from_workout(
+        self, client, auth_headers, workout, exercise
+    ):
+        """Удаление упражнения из тренировки возвращает 204."""
+        await client.post(
+            f"/workouts/{workout['id']}/exercises",
+            json={
+                "workout_id": workout["id"],
+                "exercise_id": exercise["id"],
+                "sets": 3,
+                "reps": 10,
+            },
+            headers=auth_headers,
+        )
+
+        response = await client.delete(
+            f"/workouts/{workout['id']}/exercises/{exercise['id']}",
+            headers=auth_headers,
+        )
+        assert response.status_code == 204
+
+        get_response = await client.get(
+            f"/workouts/{workout['id']}/exercises", headers=auth_headers
+        )
+        assert get_response.json() == []
+
+    async def test_delete_nonexistent_exercise_from_workout(
+        self, client, auth_headers, workout
+    ):
+        """Удаление несуществующего упражнения из тренировки возвращает 404."""
+        response = await client.delete(
+            f"/workouts/{workout['id']}/exercises/999",
+            headers=auth_headers,
+        )
+        assert response.status_code == 404
+
+    async def test_add_nonexistent_exercise_to_workout(
+        self, client, auth_headers, workout
+    ):
+        """Добавление несуществующего упражнения возвращает 404."""
+        response = await client.post(
+            f"/workouts/{workout['id']}/exercises",
+            json={
+                "workout_id": workout["id"],
+                "exercise_id": 999,
+                "sets": 3,
+                "reps": 10,
+            },
+            headers=auth_headers,
+        )
+        assert response.status_code == 404

@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.validators import (
+from app.api.v1.validators import (
     check_exercise_duplicate_in_workout,
     validate_exercise_owner,
     validate_workout_exercise,

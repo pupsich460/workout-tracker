@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends
 
-from app.api.validators import (
+from app.api.v1.validators import (
     check_workout_log_duplicate,
     validate_workout_log_owner,
     validate_workout_owner,

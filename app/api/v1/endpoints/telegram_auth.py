@@ -3,7 +3,7 @@ import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 
-from app.api.validators import check_telegram_id_duplicate
+from app.api.v1.validators import check_telegram_id_duplicate
 from app.core.dependencies import SessionDep
 from app.core.user import current_user, get_jwt_strategy
 from app.models.user import User
