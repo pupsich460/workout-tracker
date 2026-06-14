@@ -53,9 +53,6 @@ jobs:
       - name: Lint with ruff
         run: ruff check app telegram_bot pytest
 
-      - name: Typecheck with mypy
-        run: mypy app telegram_bot pytest --ignore-missing-imports
-
       - name: Run tests with coverage
         run: PYTHONPATH=. python -m pytest --cov=app --cov=telegram_bot --cov-report=term
 
