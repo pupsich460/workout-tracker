@@ -81,14 +81,20 @@ async def get_workout_exercises(
     "/ai/generate",
     response_model=WorkoutDB,
     response_model_exclude_none=True,
-    summary="Сгенерировать тренировку на основе цели, текущего веса, количества тренировок в неделю и уровня фитнеса",
+    summary=(
+        "Сгенерировать тренировку на основе цели, текущего веса, "
+        "количества тренировок в неделю и уровня фитнеса"
+    ),
 )
 async def generate_workout_endpoint(
     obj_in: WorkoutGenerateRequest,
     session: SessionDep,
     user: User = Depends(current_user),
 ):
-    """Сгенерировать тренировку на основе цели, текущего веса, количества тренировок в неделю и уровня фитнеса."""
+    """Сгенерировать тренировку на основе цели, текущего веса,
+
+    количества тренировок в неделю и уровня фитнеса.
+    """
     workout_data = await generate_workout(
         obj_in.goal, obj_in.current_weight, obj_in.days_per_week, obj_in.level
     )
@@ -186,7 +192,10 @@ async def update_workout_by_id(
 @router.delete(
     "/{workout_id}/exercises/{exercise_id}",
     status_code=HTTPStatus.NO_CONTENT,
-    summary="Удалить упражнение из тренировки по id тренировки и id упражнения",
+    summary=(
+        "Удалить упражнение из тренировки по id "
+        "тренировки и id упражнения"
+    ),
 )
 async def delete_exercise_from_workout(
     workout_id: int,
