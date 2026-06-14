@@ -1,7 +1,6 @@
 from unittest.mock import AsyncMock, patch
 
 from aiogram import Dispatcher
-from aiogram.filters import CommandStart
 from aiogram.types import Chat, Message, Update, User
 
 import pytest

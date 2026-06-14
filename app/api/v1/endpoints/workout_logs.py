@@ -7,7 +7,7 @@ from app.api.validators import (
     validate_workout_log_owner,
     validate_workout_owner,
 )
-from app.core.dependencies import RedisDep, SessionDep
+from app.core.dependencies import SessionDep
 from app.core.user import current_user
 from app.crud.workout_log import workout_log_crud
 from app.models import User
