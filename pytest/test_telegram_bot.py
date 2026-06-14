@@ -1,8 +1,9 @@
 import importlib
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from aiogram.types import Chat, Message, User
+
+import pytest
 
 
 def make_message(text: str, user_id: int = 123456) -> MagicMock:
