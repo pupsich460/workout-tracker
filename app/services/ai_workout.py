@@ -17,7 +17,8 @@ from app.schemas.workout_exercise import WorkoutExerciseCreate
 async def generate_workout(
     goal: str, current_weight: int, days_per_week: int, level: str
 ) -> dict:
-    prompt = f"""Ты персональный тренер. Составь план тренировки.
+    prompt = (
+        f"""Ты персональный тренер. Составь план тренировки.
 
     Данные пользователя:
     - Цель: {goal}
@@ -26,11 +27,12 @@ async def generate_workout(
     - Уровень: {level}
 
     Верни ТОЛЬКО один JSON объект, не массив. Строго такой формат:
-    {{"name": "название тренировки", "exercises": [""" + (
-        """{"name": "название упражнения", "sets": 3, "reps": 10}]}"""
-    ) + """
+    {{"name": "название тренировки", "exercises": ["""
+        + ("""{"name": "название упражнения", "sets": 3, "reps": 10}]}""")
+        + """
 
     Никакого текста до или после JSON. Только JSON объект."""
+    )
 
     try:
         async with httpx.AsyncClient() as client:

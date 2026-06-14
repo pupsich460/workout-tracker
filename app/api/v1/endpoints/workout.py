@@ -192,10 +192,7 @@ async def update_workout_by_id(
 @router.delete(
     "/{workout_id}/exercises/{exercise_id}",
     status_code=HTTPStatus.NO_CONTENT,
-    summary=(
-        "Удалить упражнение из тренировки по id "
-        "тренировки и id упражнения"
-    ),
+    summary=("Удалить упражнение из тренировки по id тренировки и id упражнения"),
 )
 async def delete_exercise_from_workout(
     workout_id: int,
