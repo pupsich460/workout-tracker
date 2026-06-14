@@ -206,14 +206,10 @@ class TestWorkoutLogs:
         assert create_response.status_code == 201
         log_id = create_response.json()["id"]
 
-        response = await client.delete(
-            f"/workout-logs/{log_id}", headers=auth_headers
-        )
+        response = await client.delete(f"/workout-logs/{log_id}", headers=auth_headers)
         assert response.status_code == 204
 
-        get_response = await client.get(
-            f"/workout-logs/{log_id}", headers=auth_headers
-        )
+        get_response = await client.get(f"/workout-logs/{log_id}", headers=auth_headers)
         assert get_response.status_code == 404
 
     async def test_delete_workout_log_not_found(self, client, auth_headers):
@@ -230,11 +226,15 @@ class TestWorkoutLogs:
         )
         assert response.status_code == 404
 
-    async def test_create_duplicate_workout_log_same_date(self, client, auth_headers, workout):
+    async def test_create_duplicate_workout_log_same_date(
+        self, client, auth_headers, workout
+    ):
         """Два лога одной тренировки в один день возвращает 400."""
         import datetime
 
-        today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        today = datetime.datetime.now(datetime.timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
 
         await client.post(
             "/workout-logs/",

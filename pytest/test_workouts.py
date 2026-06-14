@@ -124,21 +124,15 @@ class TestWorkouts:
                 headers=auth_headers,
             )
 
-        response = await client.get(
-            "/workouts/?limit=2&offset=0", headers=auth_headers
-        )
+        response = await client.get("/workouts/?limit=2&offset=0", headers=auth_headers)
         assert response.status_code == 200
         assert len(response.json()) == 2
 
-        response = await client.get(
-            "/workouts/?limit=2&offset=2", headers=auth_headers
-        )
+        response = await client.get("/workouts/?limit=2&offset=2", headers=auth_headers)
         assert response.status_code == 200
         assert len(response.json()) == 2
 
-        response = await client.get(
-            "/workouts/?limit=2&offset=4", headers=auth_headers
-        )
+        response = await client.get("/workouts/?limit=2&offset=4", headers=auth_headers)
         assert response.status_code == 200
         assert len(response.json()) == 1
 

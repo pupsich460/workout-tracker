@@ -14,6 +14,7 @@ main_menu_keyboard = ReplyKeyboardMarkup(
         [KeyboardButton(text="📝 Отметить тренировку")],
         [KeyboardButton(text="📊 История тренировок")],
         [KeyboardButton(text="🔗 Привязать аккаунт")],
+        [KeyboardButton(text=" 🔑 Авторизоваться")],
     ],
     resize_keyboard=True,
 )
