@@ -1,5 +1,3 @@
-
-
 class TestWorkoutLogs:
     async def test_create_workout_log(self, client, auth_headers, workout):
         """Создание лога тренировки возвращает 201."""

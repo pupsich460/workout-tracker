@@ -1,5 +1,3 @@
-
-
 class TestExercises:
     async def test_create_exercise(self, client, auth_headers):
         """Создание упражнения возвращает 201 и данные."""
