@@ -39,6 +39,6 @@ async def get_workout_logs(message: Message):
         date = log.get("date", "Дата не указана")
         workout_id = log.get("workout_id", "—")
 
-        text += f"{status}\n" f"🏋️ Тренировка ID: {workout_id}\n" f"📅 Дата: {date}\n\n"
+        text += f"{status}\n🏋️ Тренировка ID: {workout_id}\n📅 Дата: {date}\n\n"
 
     await message.answer(text, parse_mode="Markdown")

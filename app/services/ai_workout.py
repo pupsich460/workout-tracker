@@ -74,7 +74,6 @@ async def create_workout_from_ai(
     )
 
     for exercise in workout_data["exercises"]:
-
         exercise_obj = await exercise_crud.create(
             ExerciseCreate(name=exercise["name"]),
             session,

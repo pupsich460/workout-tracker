@@ -2,7 +2,6 @@ import pytest
 
 
 class TestWorkouts:
-
     async def test_create_workout(self, client, auth_headers):
         """Создание тренировки возвращает 200 и данные."""
         response = await client.post(
@@ -123,7 +122,6 @@ class TestWorkouts:
 
 
 class TestWorkoutExercises:
-
     async def test_add_exercise_to_workout(
         self, client, auth_headers, workout, exercise
     ):

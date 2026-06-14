@@ -108,7 +108,7 @@ async def process_level(callback: CallbackQuery, state: FSMContext):
     text = f"✅ Тренировка создана: *{workout['name']}*\n\n"
 
     for we in workout.get("workout_exercises", []):
-        text += f"• {we['exercise']['name']} — " f"{we['sets']}x{we['reps']}\n"
+        text += f"• {we['exercise']['name']} — {we['sets']}x{we['reps']}\n"
 
     await callback.message.answer(
         text,

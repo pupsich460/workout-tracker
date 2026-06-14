@@ -77,7 +77,6 @@ async def test_cmd_cancel_no_state(dp):
 
 
 class TestWorkoutsBot:
-
     @patch("telegram_bot.routers.workouts.require_token")
     async def test_get_workouts_no_token(self, mock_require_token, dp):
         mock_require_token.return_value = None
@@ -138,7 +137,6 @@ class TestWorkoutsBot:
 
 
 class TestLogsBot:
-
     @patch("telegram_bot.routers.logs.require_token")
     async def test_log_no_token(self, mock_require_token, dp):
         mock_require_token.return_value = None
