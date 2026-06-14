@@ -56,7 +56,10 @@ async def _check_workout_schedules():
                 if schedule.user.telegram_id:
                     send_workout_reminder.delay(
                         schedule.user.telegram_id,
-                        f"Напоминание: тренировка «{schedule.workout.name}» скоро начнётся!",
+                        (
+                            f"Напоминание: тренировка «{schedule.workout.name}» "
+                            "скоро начнётся!"
+                        ),
                     )
 
                     schedule.last_reminder_at = now

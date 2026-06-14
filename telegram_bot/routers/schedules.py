@@ -268,53 +268,6 @@ async def start_delete_schedule(callback: CallbackQuery):
         return
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_URL}/workout-schedules/schedules/",
-            headers={"Authorization": f"Bearer {token}"},
-        )
-
-    if response.status_code != 200:
-        await callback.message.answer("❌ Не удалось получить напоминания.")
-        await callback.answer()
-        return
-
-    schedules = response.json()
-
-    if not schedules:
-        await callback.message.answer("У тебя пока нет напоминаний.")
-        await callback.answer()
-        return
-
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=(
-                        f"{WEEKDAYS.get(schedule['weekday'], 'День')} "
-                        f"{schedule['workout_time']}"
-                    ),
-                    callback_data=f"delete_schedule_{schedule['id']}",
-                )
-            ]
-            for schedule in schedules
-        ]
-    )
-
-    await callback.message.answer(
-        "Выбери напоминание для удаления:",
-        reply_markup=kb,
-    )
-    await callback.answer()
-
-
-@router.callback_query(F.data == "schedules_delete")
-async def start_delete_schedule(callback: CallbackQuery):
-    token = await require_token(callback)
-    if not token:
-        await callback.answer()
-        return
-
-    async with httpx.AsyncClient() as client:
         schedules_response = await client.get(
             f"{API_URL}/workout-schedules/schedules/",
             headers={"Authorization": f"Bearer {token}"},
