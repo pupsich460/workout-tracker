@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import httpx
 from aiogram import F, Router
 from aiogram.types import Message
@@ -22,7 +24,7 @@ async def get_workout_logs(message: Message):
             headers={"Authorization": f"Bearer {token}"},
         )
 
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         await message.answer("❌ Не удалось получить историю тренировок.")
         return
 

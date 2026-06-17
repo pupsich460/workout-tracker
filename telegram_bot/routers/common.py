@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import httpx
 from aiogram import F, Router
 from aiogram.filters import Command
@@ -29,7 +31,7 @@ async def cmd_reauth(message: Message):
             json={"telegram_id": message.from_user.id},
         )
 
-    if response.status_code == 200:
+    if response.status_code == HTTPStatus.OK:
         token = response.json().get("access_token")
         if token:
             await set_token(message.from_user.id, token)

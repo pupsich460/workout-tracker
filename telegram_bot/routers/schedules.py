@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import httpx
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -86,7 +88,7 @@ async def list_schedules(callback: CallbackQuery):
             headers={"Authorization": f"Bearer {token}"},
         )
 
-    if schedules_response.status_code != 200:
+    if schedules_response.status_code != HTTPStatus.OK:
         await callback.message.answer("❌ Не удалось получить напоминания.")
         await callback.answer()
         return
@@ -100,7 +102,7 @@ async def list_schedules(callback: CallbackQuery):
 
     workouts_by_id = {}
 
-    if workouts_response.status_code == 200:
+    if workouts_response.status_code == HTTPStatus.OK:
         workouts_by_id = {
             workout["id"]: workout["name"] for workout in workouts_response.json()
         }
@@ -141,7 +143,7 @@ async def start_create_schedule(callback: CallbackQuery, state: FSMContext):
             headers={"Authorization": f"Bearer {token}"},
         )
 
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         await callback.message.answer("❌ Не удалось получить тренировки.")
         await callback.answer()
         return
@@ -251,7 +253,7 @@ async def process_reminder_minutes(callback: CallbackQuery, state: FSMContext):
             },
         )
 
-    if response.status_code in (200, 201):
+    if response.status_code in (HTTPStatus.OK, HTTPStatus.CREATED):
         await callback.message.answer("✅ Напоминание создано!")
     else:
         await callback.message.answer("❌ Не удалось создать напоминание.")
@@ -278,7 +280,7 @@ async def start_delete_schedule(callback: CallbackQuery):
             headers={"Authorization": f"Bearer {token}"},
         )
 
-    if schedules_response.status_code != 200:
+    if schedules_response.status_code != HTTPStatus.OK:
         await callback.message.answer("❌ Не удалось получить напоминания.")
         await callback.answer()
         return
@@ -292,7 +294,7 @@ async def start_delete_schedule(callback: CallbackQuery):
 
     workouts_by_id = {}
 
-    if workouts_response.status_code == 200:
+    if workouts_response.status_code == HTTPStatus.OK:
         workouts_by_id = {
             workout["id"]: workout["name"] for workout in workouts_response.json()
         }
@@ -335,7 +337,7 @@ async def delete_schedule(callback: CallbackQuery):
             headers={"Authorization": f"Bearer {token}"},
         )
 
-    if response.status_code == 204:
+    if response.status_code == HTTPStatus.OK:
         await callback.message.answer("🗑 Напоминание удалено.")
     else:
         await callback.message.answer("❌ Не удалось удалить напоминание.")

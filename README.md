@@ -2,13 +2,15 @@
 
 FastAPI-приложение для трекинга тренировок с Telegram-ботом, AI-генерацией тренировок и системой напоминаний.
 
+**Live demo:** [workouttracker.accesscam.org](https://workouttracker.accesscam.org)
+
 ## Возможности
 
 - Регистрация и аутентификация пользователей (JWT через fastapi-users)
 - CRUD для тренировок, упражнений и логов тренировок
 - Добавление упражнений в тренировки с указанием подходов и повторений
 - Расписание тренировок с напоминаниями
-- Генерация тренировок через Groq API (llama-3.3-70b-versatile)
+- Генерация тренировок через AI
 - Telegram-бот (aiogram 3) — управление тренировками, логирование, AI-генерация
 - Асинхронный стек: FastAPI + SQLAlchemy (async) + PostgreSQL
 - Celery + Redis для фоновых задач и напоминаний
@@ -21,7 +23,7 @@ FastAPI-приложение для трекинга тренировок с Tel
 | База данных | PostgreSQL, SQLAlchemy (async), Alembic |
 | Фоновые задачи | Celery, Redis |
 | Telegram-бот | aiogram 3 |
-| AI | Groq API (llama-3.3-70b-versatile) |
+| AI | Groq API |
 | Тесты | pytest, pytest-asyncio, pytest-cov |
 | Линтер | Ruff |
 | Контейнеризация | Docker, Docker Compose |

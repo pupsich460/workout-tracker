@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import httpx
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -42,7 +44,7 @@ async def get_workouts(message: Message):
             headers={"Authorization": f"Bearer {token}"},
         )
 
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         await message.answer("❌ Не удалось получить тренировки.")
         return
 
@@ -82,7 +84,7 @@ async def get_workout_detail(callback: CallbackQuery):
             headers={"Authorization": f"Bearer {token}"},
         )
 
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         await callback.message.answer("❌ Не удалось получить тренировку.")
         await callback.answer()
         return
@@ -123,7 +125,7 @@ async def delete_workout(callback: CallbackQuery):
             headers={"Authorization": f"Bearer {token}"},
         )
 
-    if response.status_code == 204:
+    if response.status_code == HTTPStatus.NO_CONTENT:
         await callback.message.answer("🗑 Тренировка удалена.")
     else:
         await callback.message.answer("❌ Что-то пошло не так.")
@@ -165,7 +167,7 @@ async def process_workout_description(message: Message, state: FSMContext):
             json={"name": data["name"], "description": description},
         )
 
-    if response.status_code in (200, 201):
+    if response.status_code in (HTTPStatus.OK, HTTPStatus.CREATED):
         await message.answer(f"✅ Тренировка '{data['name']}' создана!")
     else:
         await message.answer("❌ Что-то пошло не так.")
@@ -229,7 +231,7 @@ async def process_reps(message: Message, state: FSMContext):
             json={"name": data["exercise_name"]},
         )
 
-        if exercise_response.status_code not in (200, 201):
+        if exercise_response.status_code not in (HTTPStatus.OK, HTTPStatus.CREATED):
             await message.answer("❌ Не удалось создать упражнение.")
             await state.clear()
             return
@@ -246,7 +248,7 @@ async def process_reps(message: Message, state: FSMContext):
             },
         )
 
-    if response.status_code in (200, 201):
+    if response.status_code in (HTTPStatus.OK, HTTPStatus.CREATED):
         await message.answer("✅ Упражнение добавлено!")
     else:
         await message.answer("❌ Не удалось добавить упражнение.")

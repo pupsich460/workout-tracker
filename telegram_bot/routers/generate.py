@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import httpx
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -98,7 +100,7 @@ async def process_level(callback: CallbackQuery, state: FSMContext):
             },
         )
 
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         await callback.message.answer("❌ Не удалось сгенерировать тренировку.")
         await state.clear()
         return

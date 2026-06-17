@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import httpx
 from aiogram import F, Router
 from aiogram.types import (
@@ -40,7 +42,7 @@ async def cmd_log(message: Message):
             headers={"Authorization": f"Bearer {token}"},
         )
 
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         await message.answer("❌ Не удалось получить тренировки.")
         return
 
@@ -74,7 +76,7 @@ async def process_log(callback: CallbackQuery):
             json={"workout_id": workout_id, "status": True},
         )
 
-    if response.status_code == 201:
+    if response.status_code == HTTPStatus.CREATED:
         await callback.message.answer("✅ Тренировка отмечена как выполненная!")
     else:
         await callback.message.answer("❌ Что-то пошло не так.")
