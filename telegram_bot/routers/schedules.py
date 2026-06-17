@@ -318,3 +318,26 @@ async def start_delete_schedule(callback: CallbackQuery):
         reply_markup=kb,
     )
     await callback.answer()
+
+
+@router.callback_query(F.data.startswith("delete_schedule_"))
+async def delete_schedule(callback: CallbackQuery):
+    token = await require_token(callback)
+    if not token:
+        await callback.answer()
+        return
+
+    schedule_id = int(callback.data.replace("delete_schedule_", ""))
+
+    async with httpx.AsyncClient() as client:
+        response = await client.delete(
+            f"{API_URL}/workout-schedules/schedules/{schedule_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+    if response.status_code == 204:
+        await callback.message.answer("🗑 Напоминание удалено.")
+    else:
+        await callback.message.answer("❌ Не удалось удалить напоминание.")
+
+    await callback.answer()
