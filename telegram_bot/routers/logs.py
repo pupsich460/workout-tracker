@@ -42,7 +42,8 @@ async def cmd_log(message: Message):
 
     if response.status_code != 200:
         await message.answer(
-            "❌ Не удалось получить тренировки. Код: {response.status_code}, ответ: {response.text}"
+            f"❌ Не удалось получить тренировки."
+            f"Код: {response.status_code}, ответ: {response.text}"
         )
         return
 
