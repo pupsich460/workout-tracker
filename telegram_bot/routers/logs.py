@@ -41,7 +41,7 @@ async def cmd_log(message: Message):
         )
 
     if response.status_code != 200:
-        await message.answer(f"❌ Не удалось получить тренировки.")
+        await message.answer("❌ Не удалось получить тренировки.")
         return
 
     workouts = response.json()
